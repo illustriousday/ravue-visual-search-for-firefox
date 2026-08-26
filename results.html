@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1">
+  <title>Ravue</title>
+  <link rel="icon" href="icons/ravue.svg">
+  <link rel="stylesheet" href="ui/results.css">
+</head>
+<body>
+  <div class="ambient ambient-one"></div>
+  <div class="ambient ambient-two"></div>
+
+  <main>
+    <div class="brand"><img src="icons/ravue.svg" alt=""><strong>Ravue</strong></div>
+    <div class="loader" aria-hidden="true">
+      <span class="frame frame-one"></span>
+      <span class="frame frame-two"></span>
+      <span class="beam"></span>
+      <span class="core"></span>
+    </div>
+    <p class="eyebrow" data-i18n="resultEyebrow"></p>
+    <h1 data-i18n="resultTabTitle"></h1>
+    <p class="body-copy" data-i18n="resultTabBody"></p>
+    <p class="hint" data-i18n="resultTabHint"></p>
+    <section id="result-error" class="error-card" role="alert" hidden>
+      <strong data-i18n="resultTabError"></strong>
+      <p id="result-error-detail"></p>
+      <button id="close-tab" type="button" data-i18n="resultTabClose"></button>
+    </section>
+  </main>
+
+  <script type="module" src="results.mjs"></script>
+</body>
+</html>

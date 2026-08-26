@@ -1,0 +1,63 @@
+{
+  "manifest_version": 2,
+  "name": "__MSG_appName__",
+  "version": "1.4.0",
+  "description": "__MSG_appDescription__",
+  "default_locale": "pt_BR",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "{351e58ce-b7a8-4e88-b53f-d23acc464659}",
+      "strict_min_version": "140.0",
+      "data_collection_permissions": {
+        "required": ["websiteContent"],
+        "optional": []
+      }
+    },
+    "gecko_android": {
+      "strict_min_version": "142.0"
+    }
+  },
+  "icons": {
+    "16": "icons/ravue.svg",
+    "32": "icons/ravue.svg",
+    "48": "icons/ravue.svg",
+    "96": "icons/ravue.svg"
+  },
+  "permissions": [
+    "activeTab",
+    "contextMenus",
+    "https://lens.google.com/*"
+  ],
+  "browser_action": {
+    "default_title": "__MSG_browserAction__",
+    "default_icon": {
+      "16": "icons/ravue.svg",
+      "32": "icons/ravue.svg"
+    }
+  },
+  "commands": {
+    "open-ravue": {
+      "suggested_key": {
+        "default": "Alt+Shift+V"
+      },
+      "description": "__MSG_commandDescription__"
+    }
+  },
+  "background": {
+    "page": "background.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://lens.google.com/v3/upload*",
+        "https://lens.google.com/uploadbyurl*"
+      ],
+      "js": ["content/lens-result.js"],
+      "run_at": "document_start"
+    }
+  ],
+  "web_accessible_resources": [
+    "ui/overlay.css"
+  ],
+  "content_security_policy": "script-src 'self'; object-src 'none'; form-action https://lens.google.com; base-uri 'none'"
+}
