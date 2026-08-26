@@ -2,9 +2,6 @@
 
 Ravue é uma extensão independente de busca visual para Firefox. Ela pesquisa uma imagem inteira com um clique ou permite selecionar qualquer área visível da página, sempre abrindo os resultados do Google Lens em uma nova guia normal.
 
-**Repositório somente para consulta:** este repositório disponibiliza o código-fonte da Ravue para transparência e referência. Não são aceitos relatórios de erros, solicitações de suporte, sugestões, feedback, pull requests ou contribuições.
-
-
 ## Recursos
 
 - pesquisa direta da imagem clicada, sem abrir o seletor;

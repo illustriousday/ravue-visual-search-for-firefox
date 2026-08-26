@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "__MSG_appName__",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "__MSG_appDescription__",
   "default_locale": "pt_BR",
   "browser_specific_settings": {
@@ -12,16 +12,15 @@
         "required": ["websiteContent"],
         "optional": []
       }
-    },
-    "gecko_android": {
-      "strict_min_version": "142.0"
     }
   },
   "icons": {
-    "16": "icons/ravue.svg",
-    "32": "icons/ravue.svg",
-    "48": "icons/ravue.svg",
-    "96": "icons/ravue.svg"
+    "16": "icons/ravue-16.png",
+    "32": "icons/ravue-32.png",
+    "48": "icons/ravue-48.png",
+    "64": "icons/ravue-64.png",
+    "96": "icons/ravue-96.png",
+    "128": "icons/ravue-128.png"
   },
   "permissions": [
     "activeTab",
@@ -31,8 +30,8 @@
   "browser_action": {
     "default_title": "__MSG_browserAction__",
     "default_icon": {
-      "16": "icons/ravue.svg",
-      "32": "icons/ravue.svg"
+      "16": "icons/ravue-16.png",
+      "32": "icons/ravue-32.png"
     }
   },
   "commands": {

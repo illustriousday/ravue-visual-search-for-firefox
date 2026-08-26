@@ -1,4 +1,4 @@
-# Publicação no AMO — Ravue 1.4.0
+# Publicação no AMO — Ravue 1.4.1
 
 ## Nome
 
@@ -42,21 +42,19 @@ Includes Brazilian Portuguese and English, light and dark themes, keyboard suppo
 
 Ravue is an independent product and is not affiliated with, sponsored by, or endorsed by Google or Mozilla.
 
-## Notas da versão 1.4.0
+## Notas da versão 1.4.1
 
-- Corrige **Pesquisar esta imagem com Ravue** para pesquisar diretamente a imagem clicada, sem abrir o seletor.
-- Mantém **Selecionar uma área com Ravue** como o único comando que abre o overlay de seleção.
-- Adiciona contingência por URL para imagens em frames que não permitem captura direta.
-- Adota o nome público **Ravue — Visual Search for Firefox**.
-- Atualiza descrições, documentação e política de privacidade para refletir precisamente os dois fluxos.
+- Limita oficialmente a disponibilidade ao Firefox Desktop, única plataforma validada nesta versão.
+- Remove a declaração `gecko_android` para impedir que o AMO anuncie a extensão como compatível com Firefox Android.
+- Inclui ícones PNG de 16 a 128 pixels no manifesto para compatibilidade consistente com a listagem do AMO.
+- Não altera o funcionamento, a interface, as permissões nem os fluxos de pesquisa da Ravue 1.4.0.
 
-## Version notes 1.4.0
+## Version notes 1.4.1
 
-- Fixes **Search this image with Ravue** so it searches the clicked image directly without opening the selector.
-- Keeps **Select an area with Ravue** as the only context-menu command that opens the selection overlay.
-- Adds a source-URL fallback for images in frames that cannot be captured directly.
-- Adopts the public name **Ravue — Visual Search for Firefox**.
-- Updates descriptions, documentation, and privacy disclosures to accurately cover both workflows.
+- Officially limits availability to Firefox Desktop, the only platform validated for this release.
+- Removes the `gecko_android` declaration so AMO does not advertise the extension as compatible with Firefox for Android.
+- Adds manifest PNG icons from 16 through 128 pixels for consistent AMO listing compatibility.
+- Does not change Ravue 1.4.0 behavior, interface, permissions, or visual-search workflows.
 
 ## Notes for Reviewers
 
@@ -89,6 +87,8 @@ Permissions:
 - `https://lens.google.com/*`: submit the chosen image and detect an upload error.
 
 Required transmitted data category: `websiteContent`, used only for the extension's core visual-search function.
+
+Platform scope: Firefox Desktop only. The manifest intentionally omits `gecko_android` so AMO does not list this version for Firefox Android.
 
 ## Categoria sugerida
 

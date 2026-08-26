@@ -24,12 +24,14 @@ function assertFile(file) {
 
 test("manifesto representa um produto novo e usa permissões mínimas", () => {
   assert.equal(manifest.manifest_version, 2);
-  assert.equal(manifest.version, "1.4.0");
+  assert.equal(manifest.version, "1.4.1");
   assert.equal(manifest.default_locale, "pt_BR");
   assert.deepEqual(manifest.permissions.sort(), ["activeTab", "contextMenus", "https://lens.google.com/*"].sort());
   assert.deepEqual(manifest.browser_specific_settings.gecko.data_collection_permissions.required, ["websiteContent"]);
   assert.equal(manifest.browser_specific_settings.gecko.strict_min_version, "140.0");
-  assert.equal(manifest.browser_specific_settings.gecko_android.strict_min_version, "142.0");
+  assert.equal("gecko_android" in manifest.browser_specific_settings, false);
+  assert.equal(manifest.icons["128"], "icons/ravue-128.png");
+  assert.equal(Object.values(manifest.icons).every((file) => file.endsWith(".png")), true);
   assert.equal(manifest.content_scripts.length, 1);
   assert.deepEqual(manifest.content_scripts[0].matches, [
     "https://lens.google.com/v3/upload*",
