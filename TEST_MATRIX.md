@@ -1,75 +1,61 @@
-# Matriz de validação — Ravue 2.1.6 definitiva
+# Validation Matrix — final Ravue 2.1.6 release
 
-Atualização documental: 31/08/2026. O responsável relatou sucesso, no Firefox, nos cenários que falhavam na revisão anterior e aprovou a base. O reempacotamento atual altera apenas documentação; nenhuma linha dos testes ou do funcionamento foi modificada.
+Documentation update: August 31, 2026. The maintainer reported successful Firefox results for the scenarios that had failed in the previous review and approved the baseline. The current repackaging changes documentation only; no test or runtime code was modified.
 
-A validação automatizada de referência contém 179 testes aprovados: 166 unitários/regressão e 13 com codecs nativos. O aceite cotidiano não equivale a uma matriz manual exaustiva. **O resultado oficial do AMO e a atualização assinada ainda precisam de evidência.**
+The reference automated validation contains 179 passing tests: 166 unit/regression tests and 13 tests using native codecs. Everyday-use acceptance is not equivalent to an exhaustive manual test matrix. **The official AMO result and the signed update still require evidence.**
 
-## Validações automatizadas
+## Automated validations
 
-- Suíte principal: testes originais preservados, contratos de release atualizados explicitamente para as correções e novas regressões.
-- Regressões de KEY-01: Enter sobre Cancelar, Redefinir, Fechar ou Página visível não submete a seleção. Ativação nativa do botão preservada; composição IME ignorada.
-- Regressões de LENS-02: na página do Lens, expiração, resposta negativa, falha de mensagem e o prazo local liberam a cobertura.
-- Carregamento do Google Imagens: 12 cenários de regressão cobrem a espera pelo documento completo ou load antes de manipular o upload. DOMContentLoaded não antecipa o envio. Não há prazo local para essa espera inicial; se load nunca ocorrer, a cobertura pode permanecer até o usuário fechar a guia.
-- Consumo único: chamadas simultâneas não recebem cópias duplicadas do JPEG.
-- URLs: endereços locais reconhecíveis são excluídos; URLs elegíveis e parâmetros da imagem continuam preservados.
-- Geometria: 10.000 amostras determinísticas e casos de limites, escalas e proporções.
-- Imagens nativas: PNG → recorte → JPEG em seis escalas; imagem 288×412; imagem alta; PNG transparente, WebP, SVG; backup de bitmap completo e decodificação inválida.
-- Pacote: sintaxe/JSON, recursos locais, ícones PNG, traduções, permissões, hashes, CRC e igualdade XPI/fonte.
-- Contraste: pares de cores-base dos textos pequenos claros acima de 4,5:1. Isso não é certificação WCAG de toda a interface.
+- Main suite: original tests preserved, with release contracts explicitly updated for the fixes and new regressions.
+- KEY-01 regressions: Enter on Cancel, Reset, Close, or Visible page does not submit the selection. Native button activation is preserved; IME composition is ignored.
+- LENS-02 regressions: on the Lens page, expiry, negative response, message failure, and the local timeout release the overlay.
+- Google Images loading: 12 regression scenarios cover waiting for the document to reach complete or for load before manipulating the upload controls. DOMContentLoaded does not trigger submission early. There is no local timeout for this initial wait; if load never occurs, the overlay may remain until the user closes the tab.
+- Single consumption: simultaneous calls do not receive duplicate copies of the JPEG.
+- URLs: recognizable local addresses are excluded; eligible URLs and image parameters remain preserved.
+- Geometry: 10,000 deterministic samples and cases covering boundaries, scaling, and proportions.
+- Native images: PNG → crop → JPEG at six scales; 288×412 image; tall image; transparent PNG, WebP, SVG; full-bitmap fallback and invalid decoding.
+- Package: syntax/JSON, local resources, PNG icons, translations, permissions, hashes, CRC, and XPI/source equality.
+- Contrast: base color pairs for small light-theme text exceed 4.5:1. This is not a WCAG certification of the entire interface.
 
-Os testes de APIs usam substitutos explícitos de navegador/DOM. Os testes nativos usam Skia e libvips, não Gecko. As 10.000 amostras fazem parte de testes existentes; não são milhares de testes independentes. As informações para publicação estão em AMO_PUBLICATION.md, dentro deste fonte, sem depender de um kit antigo.
+API tests use explicit browser/DOM substitutes. Native tests use Skia and libvips, not Gecko. The 10,000 samples are part of existing tests; they are not thousands of independent tests. Publication information is contained in AMO_PUBLICATION.md within this source package and does not depend on an older publication kit.
 
-## Matriz de testes reais e registro de evidências
+## Real-world test matrix and evidence log
 
-Nesta tabela, “pendente” significa ausência de evidência formal individual para aquele cenário; não invalida nem transforma em testes exaustivos o relato de uso aprovado pelo responsável. Registrar somente o que for efetivamente executado.
+In this table, “pending” means there is no individual formal evidence for that scenario; it does not invalidate or turn the maintainer's approved-use report into exhaustive testing. Record only what is actually executed.
 
-Use perfil separado, sem informações pessoais. Registre versão exata do Firefox, sistema, idioma, zoom, DPR/escala, permissões e SHA-256 do pacote. Não desative assinatura, CSP ou mecanismos do Google para forçar sucesso.
+Use a separate profile with no personal information. Record the exact Firefox version, operating system, language, zoom, DPR/scale, permissions, and package SHA-256. Do not disable signing, CSP, or Google protections to force success.
 
-| ID | Verificação | Evidência local / pendência |
+| ID | Check | Local evidence / pending item |
 | --- | --- | --- |
-| F01 | Instalação no Firefox mínimo 142 e no estável instalado | Manifesto validado; instalação pendente |
-| F02 | Atualização assinada 1.4.1 → 2.1.6, mesmo ID, sem duplicado | Identidade comparada; atualização real pendente |
-| F03 | Painel PT-BR/EN, versão, botão e ausência da linha de atalho | Código/traduções testados; render pendente |
-| F04 | Painel, menu e atalho iniciam seletor vazio | Lógica testada; interação Firefox pendente |
-| F05 | Imagem pública pequena, grande e maior que a tela | Rota testada, sem captura/scroll; resultado Google pendente |
-| F06 | Imagem em iframe de mesma origem e origem diferente | Rotas simuladas; aplicação real de permissões pendente |
-| F07 | Fontes blob/data, JPEG, PNG, WebP, SVG e transparência | Pixels/formatos nativos testados; Gecko/CORS pendentes |
-| F08 | Lazy loading, picture/srcset, imagem ainda decodificando | Casos locais parciais; sites reais pendentes |
-| F09 | object-fit, bordas/padding, object-position | Geometria testada; CSS/renderização reais pendentes |
-| F10 | Zoom 80/100/125/150/200%; DPR 1/1,25/1,5/2/3 | Matemática e pixels testados; Firefox/OS pendentes |
-| F11 | CSP forte e captura fora do viewport sem deslocamento | Fixture e chamadas testadas; segurança Gecko pendente |
-| F12 | Clique inteligente, arraste, mover, oito alças e clique direito | Testes de lógica aprovados; conforto visual pendente |
-| F13 | Texto grande, legenda, balão, fotos de pessoas/animais | Heurísticas sintéticas; não prometer reconhecimento semântico |
-| F14 | Enter/Espaço em cada botão, Tab/Shift+Tab, Esc e setas | Regressões aprovadas; teclado real/leitor de tela pendentes |
-| F15 | Página visível só envia após Pesquisar; cancelar não envia | Lógica testada; interação real pendente |
-| F16 | Preparação na mesma guia e resultado correspondente | Estado e esperas por etapa testados; sem prazo global para load do Google Imagens; matriz real por cenário pendente |
-| F17 | Offline, input ausente, expiração, 403, CAPTCHA e consentimento | Falhas simuladas; Google real pendente, sem bypass |
-| F18 | Fechar resultado durante preparo e repetir; reinício do background | Limpeza/retomada simuladas; suspensão real pendente |
-| F19 | Dois acionamentos, duas janelas, concorrência | Bloqueios e consumo único testados; interação real pendente |
-| F20 | Trocar guia ativa durante captura | Rejeição testada; Firefox pendente |
-| F21 | Revogar/conceder cada host de Google/Lens | Permissões estáticas; experiência real pendente |
-| F22 | Contêineres, cookies e janela privada | Não validados; conferir antes de anunciar compatibilidade nesses contextos |
-| F23 | Temas, contraste, reduced motion e ampliação de interface | Cores-base/CSS inspecionados; composição visual pendente |
-| F24 | Validador oficial no XPI final | Não executado neste ambiente |
-| F25 | XPI/fonte final e runtime assinado | Comparação local dos pacotes; arquivos não documentais idênticos à base aceita; assinatura futura pendente |
+| F01 | Installation on minimum Firefox 142 and the installed stable version | Manifest validated; installation pending |
+| F02 | Signed update 1.4.1 → 2.1.6, same ID, no duplicate | Identity compared; real update pending |
+| F03 | PT-BR/EN panel, version, button, and absence of shortcut row | Code/translations tested; rendering pending |
+| F04 | Panel, menu, and shortcut start with an empty selector | Logic tested; Firefox interaction pending |
+| F05 | Small, large, and taller-than-screen public images | Route tested, without capture/scroll; Google result pending |
+| F06 | Image inside same-origin and cross-origin iframes | Routes simulated; real permission behavior pending |
+| F07 | blob/data sources, JPEG, PNG, WebP, SVG, and transparency | Native pixels/formats tested; Gecko/CORS pending |
+| F08 | Lazy loading, picture/srcset, image still decoding | Partial local cases; real sites pending |
+| F09 | object-fit, borders/padding, object-position | Geometry tested; real CSS/rendering pending |
+| F10 | Zoom 80/100/125/150/200%; DPR 1/1.25/1.5/2/3 | Math and pixels tested; Firefox/OS pending |
+| F11 | Strong CSP and capture outside the viewport without shifting | Fixture and calls tested; Gecko security pending |
+| F12 | Smart click, drag, move, eight handles, and right-click | Logic tests passed; visual usability pending |
+| F13 | Large text, captions, speech bubbles, photos of people/animals | Synthetic heuristics; do not claim semantic recognition |
+| F14 | Enter/Space on every button, Tab/Shift+Tab, Esc, and arrow keys | Regressions passed; real keyboard/screen reader pending |
+| F15 | Visible page submits only after Search; cancel does not submit | Logic tested; real interaction pending |
+| F16 | Preparation in the same tab and corresponding result | State and per-stage waits tested; no global timeout for Google Images load; real scenario matrix pending |
+| F17 | Offline, missing input, expiry, 403, CAPTCHA, and consent | Failures simulated; real Google pending, no bypass |
+| F18 | Close result during preparation and retry; background restart | Cleanup/resume simulated; real suspension pending |
+| F19 | Two activations, two windows, concurrency | Locks and single consumption tested; real interaction pending |
+| F20 | Switch active tab during capture | Rejection tested; Firefox pending |
+| F21 | Revoke/grant each Google/Lens host permission | Static permissions; real experience pending |
+| F22 | Containers, cookies, and private window | Not validated; check before advertising compatibility in these contexts |
+| F23 | Themes, contrast, reduced motion, and interface scaling | Base colors/CSS inspected; visual composition pending |
+| F24 | Official validator on final XPI | Not executed in this environment |
+| F25 | Final XPI/source and signed runtime | Local package comparison; non-documentation files identical to accepted baseline; future signing pending |
 
-## Laboratório de páginas difíceis
+## Difficult-page test lab
 
-Na pasta fonte:
+From the source directory:
 
 ```bash
 node tests/fixture-server.cjs
-```
-
-As páginas locais incluem fixtures de formatos, frames e CSP. Loopback não é uma imagem pública que o Google possa obter. Nesta revisão URLs locais seguem os caminhos locais quando permitidos. Para testar a rota prioritária, use uma imagem pública não sensível; não publique o laboratório ou arquivos pessoais na internet.
-
-## Critérios de aceite antes da publicação
-
-1. Nenhum teste automatizado da revisão final falhando.
-2. Validador oficial executado; erros resolvidos e alertas examinados.
-3. Instalação e pesquisas por URL e por recorte concluídas no Firefox, com resultados visuais conferidos.
-4. Teclado/cancelamento, mesma guia, ausência de scroll e tratamento de falhas confirmados.
-5. Atualização desde a versão pública e novas permissões verificadas em perfil separado.
-6. Documentação, XPI e fonte correspondentes; 2.1.6 disponível no cadastro existente.
-
-Os testes locais não garantem aprovação no AMO, inclusão no programa de recomendadas, disponibilidade do Google ou ausência de qualquer defeito. Nenhuma publicação foi executada.
