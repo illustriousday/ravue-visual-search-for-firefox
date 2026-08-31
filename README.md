@@ -1,126 +1,99 @@
 # Ravue — Visual Search for Firefox
 
-Busca visual com o Google Lens: pesquise uma imagem da página ou selecione uma área visível para procurar em uma nova guia.
+Visual search with Google Lens: search an image from the page or select any visible area and search it in a new tab.
 
-**Versão deste código: 2.1.6 · Manifest V3 · Firefox Desktop 142 ou mais recente.**
+**Source version: 2.1.6 · Manifest V3 · Firefox Desktop 142 or later.**
 
-> **Repositório somente para consulta:** este repositório disponibiliza o código-fonte da Ravue para transparência e referência. Não são aceitos relatórios de erros, solicitações de suporte, sugestões, feedback, pull requests ou contribuições.
+> **Repository for reference only:** this repository provides Ravue’s source code for transparency and reference. Bug reports, support requests, suggestions, feedback, pull requests, and contributions are not accepted.
 
-## Recursos
+## Features
 
-- Painel com explicações e botão para abrir o seletor.
-- Pesquisa da imagem clicada pelo menu de contexto, sem abrir o seletor.
-- Prioridade para a URL específica da imagem, sem recortar o recurso pelos limites da tela.
-- Seleção manual por arraste e sugestão local de região por clique.
-- Movimentação e redimensionamento do recorte.
-- Clique direito para apagar a seleção sem fechar o seletor.
-- Opção para selecionar toda a página visível e confirmar a pesquisa.
-- Preparação e resultado na mesma nova guia, sem guia auxiliar de upload.
-- Português do Brasil e inglês; painel e preparação em tema claro/escuro.
-- Sem servidor intermediário da Ravue, anúncios ou telemetria.
+- Panel with explanations and a button to open the area selector.
+- Search the clicked image directly from the context menu without opening the selector.
+- Prefer the image’s specific URL, avoiding crops limited by the visible screen area.
+- Manual click-and-drag selection and locally calculated click-based region suggestions.
+- Move and resize the selected area.
+- Right-click to clear the current selection without closing the selector.
+- Option to select the entire visible page area and confirm the search.
+- Preparation and results use the same new tab, without a separate upload tab.
+- Brazilian Portuguese and English; panel and preparation screen support light and dark themes.
+- No Ravue intermediary server, advertising, or telemetry.
 
-A página de origem não é rolada automaticamente. O seletor inicia vazio; a página inteira só é selecionada pelo comando **Página visível**.
+The source page is not scrolled automatically. The selector starts empty; the full visible page is selected only through the **Visible page** command.
 
-## Como usar
+## How to use
 
-### Painel e menu
+### Panel and context menu
 
-Clique no ícone da Ravue e em **Selecionar uma área**. O menu de contexto também oferece **Selecionar uma área com Ravue**. O atalho configurável Alt+Shift+V permanece disponível; sua linha promocional não aparece no painel.
+Click the Ravue icon, then select **Select an area**. The context menu also provides **Select an area with Ravue**. The configurable Alt+Shift+V shortcut remains available; its promotional line is not displayed in the panel.
 
-### Pesquisar uma imagem inteira
+### Search an entire image
 
-1. Clique com o botão direito sobre a imagem.
-2. Escolha **Pesquisar esta imagem com Ravue**, dentro do submenu da Ravue quando houver.
-3. A nova guia mostra a preparação e segue para a pesquisa.
+1. Right-click the image.
+2. Choose **Search this image with Ravue**, inside the Ravue submenu when applicable.
+3. A new tab opens, displays the preparation screen, and continues to the search.
 
-Esse comando já confirma o envio; não abre o seletor nem pede uma confirmação adicional.
+This command itself confirms submission. It does not open the area selector or request an additional confirmation.
 
-Quando aceita, a URL HTTP(S) da imagem é enviada ao Google Lens para que o serviço obtenha o recurso. A Ravue não reamostra a imagem nesse caminho. O endereço precisa estar acessível ao Google; login, bloqueios de origem e links temporários podem impedir a pesquisa.
+When accepted, the image’s HTTP(S) URL is sent to Google Lens so the service can retrieve the resource directly. Ravue does not resample the image on this path. The URL must be accessible to Google; authentication requirements, origin restrictions, and temporary links may prevent the search from working.
 
-Endereços locais/internos reconhecíveis e URLs com usuário/senha incorporados não usam essa rota. A verificação é sintática, não uma consulta DNS ou prova de acesso público. Os parâmetros da URL são mantidos: não use links sensíveis ou privados que não deseja compartilhar.
+Recognizable local/internal addresses and URLs containing embedded usernames or passwords do not use this path. This check is syntactic only; it does not perform DNS resolution or prove that a resource is publicly accessible. URL parameters are preserved, so do not use sensitive or private links that you do not want to share.
 
-Se a URL não for elegível, a Ravue tenta os pixels decodificados do elemento no documento principal e, se necessário e permitido, uma captura do retângulo renderizado. Esses caminhos geram JPEG de até 1200 pixels no maior lado, sem rolar a página; não preservam os bytes do arquivo original. Se uma URL já enviada falhar no Google, não existe nova captura automática: use o seletor de área como alternativa.
+If the URL is not eligible, Ravue attempts to use the image pixels decoded from the element in the top-level document and, if necessary and permitted, a capture of the rendered image rectangle. These paths produce a JPEG with a maximum dimension of 1200 pixels on the longest side without scrolling the page; they do not preserve the original file bytes. If a URL has already been submitted and later fails on Google’s side, Ravue does not automatically perform a new capture. Use the area selector as an alternative.
 
-### Selecionar uma área
+### Select an area
 
-| Controle | Ação |
+| Control | Action |
 | --- | --- |
-| Clique esquerdo simples | Sugere uma região sob o ponteiro |
-| Clique, segure e arraste | Desenha um recorte livre |
-| Arraste o recorte ou suas alças | Move ou redimensiona a seleção |
-| Clique direito no seletor | Apaga a seleção sem fechar |
-| Redefinir | Limpa a seleção atual |
-| Página visível | Seleciona todo o viewport; não envia sozinho |
-| Pesquisar | Confirma o envio do recorte |
-| Cancelar, Fechar ou Esc | Encerra o seletor antes do envio |
-| Tab / Shift+Tab | Percorre os controles disponíveis |
-| Enter / Espaço em um botão | Executa a ação desse botão |
-| Enter com a seleção focada | Confirma a pesquisa |
-| Setas / Shift+setas | Move a seleção em passos de 1 / 10 pixels CSS |
+| Single left-click | Suggests a region under the pointer |
+| Click, hold, and drag | Draws a free-form rectangular selection |
+| Drag the selection or its handles | Moves or resizes the selection |
+| Right-click inside the selector | Clears the selection without closing the selector |
+| Reset | Clears the current selection |
+| Visible page | Selects the entire viewport; does not submit by itself |
+| Search | Confirms submission of the selected area |
+| Cancel, Close, or Esc | Closes the selector before submission |
+| Tab / Shift+Tab | Moves through the available controls |
+| Enter / Space on a button | Activates that button |
+| Enter while the selection is focused | Confirms the search |
+| Arrow keys / Shift+Arrow keys | Moves the selection by 1 / 10 CSS pixels |
 
-A seleção inteligente usa heurísticas locais de cores, regiões e limites do documento. Não é OCR, não usa reconhecimento semântico de pessoas/animais e não baixa modelos de IA. Quando a análise é ambígua, favorece a imagem inteira se seus limites estiverem disponíveis. A sugestão pode errar: confira e ajuste antes de pesquisar.
+Smart selection uses local heuristics based on colors, regions, and document boundaries. It is not OCR, does not perform semantic recognition of people or animals, and does not download AI models. When analysis is ambiguous, it favors the full image when its boundaries are available. Suggestions may be inaccurate, so review and adjust the selection before searching.
 
-Para alterar zoom ou tamanho da janela durante o uso, feche e reabra o seletor. Ele trabalha sobre uma captura do momento em que foi iniciado.
+To change browser zoom or window size while using the selector, close and reopen it. The selector operates on a capture taken when it was opened.
 
-## Privacidade
+## Privacy
 
-Na busca direta, o Google recebe a URL específica da imagem ou um JPEG preparado por uma alternativa local.
+For direct image searches, Google receives either the image’s specific URL or a JPEG prepared through a local fallback path.
 
-Ao abrir o seletor, o Firefox captura **todo o viewport antes do recorte**. O PNG de trabalho e sua análise ficam locais. Após confirmar, somente o JPEG da área escolhida é entregue ao Google Imagens para iniciar a busca no Lens. Se confirmar a página visível inteira, todo esse conteúdo entra no JPEG. Não há remoção automática de dados pessoais presentes nos pixels.
+When the area selector is opened, Firefox captures the **entire viewport before cropping**. The working PNG and its analysis remain local. After confirmation, only the JPEG corresponding to the selected area is delivered to Google Images to initiate the Lens search. If you confirm the entire visible page, all of that visible content is included in the JPEG. Personal information present in the pixels is not automatically removed or hidden.
 
-O JPEG final, a URL e o estado de passagem entre etapas usam `storage.session`. Os registros têm validade lógica de cinco minutos e são removidos no consumo, encerramento ou limpeza de registros vencidos. A captura de trabalho do seletor tem ciclo de vida separado. Não é usado `storage.local` ou `storage.sync` para arquivar imagens.
+The final JPEG, URL, and handoff state between steps use `storage.session`. Records have a logical lifetime of five minutes and are removed when consumed, when the process ends, or when expired records are cleaned up. The selector’s working capture has a separate lifecycle. `storage.local` and `storage.sync` are not used to archive images.
 
-Google Imagens/Lens é um serviço externo. Regras, cookies, histórico normal das guias, processamento e retenção do Google não são controlados pela Ravue. Leia a [política de privacidade](PRIVACY.md).
+Google Images/Lens is an external service. Google’s rules, cookies, normal tab history, processing, and retention are not controlled by Ravue. Read the [privacy policy](PRIVACY.md).
 
-## Compatibilidade e permissões
+## Compatibility and permissions
 
-A versão usa Manifest V3, com background de eventos em módulo, específico para Firefox. Não há declaração de compatibilidade Android.
+This version uses Manifest V3 with a module-based event background implementation specific to Firefox. Android compatibility is not declared.
 
-| Permissão | Finalidade |
+| Permission | Purpose |
 | --- | --- |
-| `activeTab` | Acesso temporário à guia acionada pelo usuário |
-| `menus` | Comandos de contexto e identificação do elemento clicado |
-| `scripting` | Injeção dos auxiliares locais e seletor |
-| `storage` | Passagem temporária de dados por `storage.session` |
-| `https://images.google.com/*` | Entrega do JPEG ao controle de arquivo em uma busca pendente |
-| `https://lens.google.com/*` | Cobertura de preparação na guia da busca |
+| `activeTab` | Temporary access to the tab activated by the user |
+| `menus` | Context-menu commands and identification of the clicked element |
+| `scripting` | Injection of local helpers and the area selector |
+| `storage` | Temporary data handoff through `storage.session` |
+| `https://images.google.com/*` | Delivery of the JPEG to the file input of a pending search |
+| `https://lens.google.com/*` | Preparation coverage in the search tab |
 
-Não é pedido acesso permanente a todos os sites. Páginas internas/protegidas e restrições de frames, CORS ou CSP podem impedir operações. Imagens em frames inacessíveis podem usar uma URL elegível; os caminhos locais não capturam outro frame como substituto.
+Ravue does not request permanent access to all websites. Internal/protected pages and frame, CORS, or CSP restrictions may prevent some operations. Images inside inaccessible frames may still use an eligible URL; local fallback paths do not capture another frame as a substitute.
 
-A disponibilidade e o resultado da busca dependem do Google. Antes do envio de um JPEG, a Ravue aguarda o carregamento completo da página do Google Imagens. Essa espera inicial não tem prazo local: se o evento de carregamento não ocorrer, a preparação pode continuar visível e a guia pode ser fechada pelo usuário. Existem tratamentos de falha nas etapas posteriores, mas não uma garantia de duração máxima para toda a busca. Isso não contorna CAPTCHA, login, consentimento ou bloqueios do serviço.
+Search availability and results depend on Google. Before submitting a JPEG, Ravue waits for the Google Images page to finish loading. This initial wait has no local timeout: if the load event never occurs, the preparation screen may remain visible until the user closes the tab. Later stages include failure handling, but there is no guaranteed maximum duration for the entire search process. Ravue does not bypass CAPTCHA, authentication, consent prompts, or service restrictions.
 
-## Testes e desenvolvimento
+## Testing and development
 
-O runtime é original, legível e não minificado. Não há compilação, transpilação ou bundling necessário para executá-lo.
+The runtime source is original, readable, and unminified. No compilation, transpilation, or bundling is required to run it.
 
-Com Node.js compatível:
+With a compatible Node.js version:
 
 ```bash
 node --experimental-vm-modules --test tests/*.test.cjs tests/regression/*.test.cjs
-```
-
-A opção de VM executa o background real com substitutos explícitos das APIs de navegador. Os testes cobrem regras e estados; não simulam aprovação da Mozilla.
-
-Há também testes opcionais de pixels com `@napi-rs/canvas` 0.1.100 e `sharp` 0.35.4 instalados apenas no ambiente de teste:
-
-```bash
-node --experimental-vm-modules --test tests/native/*.test.cjs
-```
-
-Essas dependências **não integram o XPI**. Essa suíte decodifica imagens e JPEGs de verdade, mas usa Skia/libvips, não Gecko.
-
-Para o laboratório sintético local:
-
-```bash
-node tests/fixture-server.cjs
-```
-
-Abra o endereço informado pelo servidor em um perfil de teste. Fontes locais não são acessíveis ao Google; teste a rota de URL com uma imagem pública não sensível. A instalação temporária em `about:debugging#/runtime/this-firefox` serve para desenvolvimento, não equivale a instalação/atualização assinada.
-
-Consulte [TEST_MATRIX.md](TEST_MATRIX.md), [AMO_PUBLICATION.md](AMO_PUBLICATION.md) e [CHANGELOG.md](CHANGELOG.md). Testes automatizados aprovados não substituem o validador oficial nem a instalação e os dois fluxos reais no Firefox.
-
-## Direitos e independência
-
-Todos os direitos reservados. A disponibilização do código para consulta não é apresentada como uma licença de código aberto.
-
-Ravue é independente e não é afiliada, patrocinada ou endossada pelo Google ou pela Mozilla. Google Lens e Firefox são marcas de seus respectivos proprietários.
