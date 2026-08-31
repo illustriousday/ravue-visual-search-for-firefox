@@ -1,33 +1,33 @@
-# Alterações da Ravue
+# Ravue Changes
 
-## 2.1.6 — versão definitiva congelada
+## 2.1.6 — final frozen release
 
-O responsável aprovou a base após testar os cenários que falhavam na revisão anterior. Em 31/08/2026, autorizou reempacotar essa mesma versão para corrigir somente README.md, PRIVACY.md, CHANGELOG.md, TEST_MATRIX.md e AMO_PUBLICATION.md. Os arquivos de funcionamento, manifesto, interface, testes e ferramentas não foram alterados; os pacotes anteriores estão preservados. Os hashes dos novos arquivos ZIP/XPI mudam por causa da documentação.
+The maintainer approved the baseline after testing the scenarios that had failed in the previous review. On August 31, 2026, the maintainer authorized repackaging this same version solely to correct README.md, PRIVACY.md, CHANGELOG.md, TEST_MATRIX.md, and AMO_PUBLICATION.md. Runtime files, the manifest, interface, tests, and tools were not changed; the previous packages have been preserved. The hashes of the new ZIP/XPI files differ because of the documentation changes.
 
-Antes desse reempacotamento documental, a base já continha as correções abaixo. Ela não é byte a byte idêntica à candidata 2.1.6 original nem à 2.1.5; a função de espera inicial do upload havia sido restaurada exatamente ao comportamento da 2.1.5.
+Before this documentation-only repackaging, the baseline already contained the fixes listed below. It is not byte-for-byte identical to the original 2.1.6 candidate or to 2.1.5; the initial upload-wait function had been restored exactly to the 2.1.5 behavior.
 
-- Corrige Enter no seletor: o botão focado mantém sua própria ação, sem pesquisa indevida ao cancelar, redefinir, fechar ou selecionar a página visível.
-- Evita confirmação involuntária durante composição de texto por IME.
-- Restaura a espera pelo carregamento completo do Google Imagens antes de manipular o upload, sem início antecipado em DOMContentLoaded e sem o prazo adicional de 30 segundos introduzido nessa etapa. A espera inicial não tem prazo local; se load não ocorrer, a preparação pode permanecer visível.
-- Mantém os tratamentos posteriores: espera de até 12 segundos pelo controle de arquivo quando necessária, 20 segundos após anexar o arquivo e limite independente de 30 segundos para a cobertura na página do Lens.
-- Impede consumo duplicado de um JPEG por chamadas simultâneas na mesma instância do background.
-- Exclui endereços locais/internos reconhecíveis da rota de URL, mantendo as alternativas locais existentes.
-- Melhora duas cores de texto do tema claro, sem mudar a disposição do painel.
-- Mantém os testes da implementação e acrescenta a cobertura de regressão da espera restaurada. A validação registrada contém 179 testes locais aprovados; não equivale a teste exaustivo em Firefox ou aprovação do AMO.
-- No reempacotamento documental autorizado, alinha os cinco documentos ao comportamento final e reúne os textos de publicação em AMO_PUBLICATION.md. Nenhuma correção executável foi acrescentada nessa etapa.
+- Fixes Enter handling in the selector: the focused button keeps its own action, preventing unintended searches when cancelling, resetting, closing, or selecting the visible page.
+- Prevents unintended confirmation during IME text composition.
+- Restores waiting for Google Images to finish loading before manipulating the upload controls, without starting early on DOMContentLoaded and without the additional 30-second timeout that had been introduced at this stage. The initial wait has no local timeout; if load never occurs, the preparation screen may remain visible.
+- Keeps the later-stage handling: up to 12 seconds to wait for the file input when necessary, 20 seconds after attaching the file, and an independent 30-second limit for the overlay on the Lens page.
+- Prevents duplicate consumption of a JPEG by simultaneous calls within the same background instance.
+- Excludes recognizable local/internal addresses from the URL path while preserving the existing local fallback paths.
+- Improves two light-theme text colors without changing the panel layout.
+- Preserves the implementation tests and adds regression coverage for the restored wait behavior. The recorded validation contains 179 passing local tests; this is not equivalent to exhaustive Firefox testing or AMO approval.
+- In the authorized documentation-only repackaging, aligns the five documents with the final behavior and consolidates publication text in AMO_PUBLICATION.md. No executable fix was added at this stage.
 
-Permissões, ID, versão, métodos de envio, heurística inteligente, arraste, clique direito, ausência de rolagem automática e uso da mesma guia de resultado foram preservados. A elegibilidade da URL continua sintática; parâmetros necessários ao recurso são mantidos.
+Permissions, ID, version, submission methods, smart-selection heuristics, drag behavior, right-click behavior, absence of automatic scrolling, and use of the same result tab were preserved. URL eligibility remains syntactic; parameters required to locate the resource are preserved.
 
-## Salto público 1.4.1 → 2.1.6
+## Public update 1.4.1 → 2.1.6
 
-- Migração de Manifest V2 para Manifest V3 no Firefox Desktop, com mínimo 142.
-- Background de eventos em módulo e estado temporário por storage.session.
-- Painel do botão da extensão com apresentação e controles.
-- Sugestão local de seleção por clique e seleção manual por arraste.
-- Clique direito para apagar uma seleção sem reiniciar o seletor.
-- Busca direta com prioridade à URL específica da imagem; alternativas de pixels/captura quando não há URL elegível.
-- Envio de JPEG pelo controle do Google Imagens, com preparação e resultado na mesma nova guia.
-- Novas permissões de scripting, storage e images.google.com em relação à 1.4.1; contextMenus passa a menus. Não há acesso permanente a todos os sites.
-- Não há declaração Android.
+- Migration from Manifest V2 to Manifest V3 on Firefox Desktop, with minimum version 142.
+- Module-based event background and temporary state through storage.session.
+- Extension toolbar panel with introduction and controls.
+- Local click-based selection suggestions and manual drag selection.
+- Right-click to clear a selection without restarting the selector.
+- Direct search prioritizing the image's specific URL; pixel/capture fallback paths when no eligible URL is available.
+- JPEG submission through the Google Images file input, with preparation and results in the same new tab.
+- New scripting, storage, and images.google.com permissions compared with 1.4.1; contextMenus becomes menus. There is no permanent access to all websites.
+- No Android compatibility is declared.
 
-O salto não exige publicar as versões internas intermediárias. A disponibilidade do número no cadastro AMO e a validação final devem ser conferidas antes de enviar. A comparação histórica disponível é com os arquivos locais 1.4.1, não com um XPI assinado recém-baixado.
+The update does not require publishing the intermediate internal versions. Availability of the version number in the AMO listing and final validation must be checked before submission. The available historical comparison is against the local 1.4.1 files, not against a freshly downloaded signed XPI.
