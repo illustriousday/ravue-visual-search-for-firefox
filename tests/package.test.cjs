@@ -22,123 +22,322 @@ function assertFile(file) {
   assert.equal(fs.existsSync(path.join(root, file)), true, `arquivo ausente: ${file}`);
 }
 
-test("manifesto representa um produto novo e usa permissões mínimas", () => {
-  assert.equal(manifest.manifest_version, 2);
-  assert.equal(manifest.version, "1.4.1");
+function read(file) {
+  return fs.readFileSync(path.join(root, file), "utf8");
+}
+
+test("manifesto 3 usa permissões mínimas e uma versão de Firefox compatível", () => {
+  assert.equal(manifest.manifest_version, 3);
+  assert.match(manifest.version, /^2\.1\.[56]$/);
   assert.equal(manifest.default_locale, "pt_BR");
-  assert.deepEqual(manifest.permissions.sort(), ["activeTab", "contextMenus", "https://lens.google.com/*"].sort());
-  assert.deepEqual(manifest.browser_specific_settings.gecko.data_collection_permissions.required, ["websiteContent"]);
-  assert.equal(manifest.browser_specific_settings.gecko.strict_min_version, "140.0");
+  assert.deepEqual(manifest.permissions, ["activeTab", "menus", "scripting", "storage"]);
+  assert.deepEqual(manifest.host_permissions, [
+    "https://images.google.com/*",
+    "https://lens.google.com/*",
+  ]);
+  assert.equal("optional_host_permissions" in manifest, false);
+  assert.deepEqual(manifest.content_scripts, [
+    {
+      matches: ["https://images.google.com/*"],
+      js: ["content/loading-screen.js", "content/google-upload.js"],
+      run_at: "document_start",
+    },
+    {
+      matches: ["https://lens.google.com/*"],
+      js: ["content/loading-screen.js", "content/lens-ready.js"],
+      run_at: "document_start",
+    },
+  ]);
+  assert.equal("web_accessible_resources" in manifest, false);
+  assert.equal("browser_action" in manifest, false);
+  assert.equal("action" in manifest, true);
+  assert.equal(manifest.action.default_popup, "popup/popup.html");
+  assert.deepEqual(manifest.commands, {
+    "open-ravue": {
+      suggested_key: { default: "Alt+Shift+V" },
+      description: "__MSG_commandDescription__",
+    },
+  });
+  assert.deepEqual(manifest.background, {
+    scripts: ["background.mjs"],
+    type: "module",
+  });
+  assert.equal(manifest.browser_specific_settings.gecko.strict_min_version, "142.0");
+  assert.deepEqual(
+    manifest.browser_specific_settings.gecko.data_collection_permissions.required,
+    ["websiteContent"],
+  );
   assert.equal("gecko_android" in manifest.browser_specific_settings, false);
   assert.equal(manifest.icons["128"], "icons/ravue-128.png");
   assert.equal(Object.values(manifest.icons).every((file) => file.endsWith(".png")), true);
-  assert.equal(manifest.content_scripts.length, 1);
-  assert.deepEqual(manifest.content_scripts[0].matches, [
-    "https://lens.google.com/v3/upload*",
-    "https://lens.google.com/uploadbyurl*",
-  ]);
-  assert.deepEqual(manifest.content_scripts[0].js, ["content/lens-result.js"]);
-  assert.equal("sidebar_action" in manifest, false);
-  assert.equal("options_ui" in manifest, false);
-  assert.notEqual(manifest.browser_specific_settings.gecko.id, "{ef7aaca3-7766-4ceb-9804-ae3df281a721}");
+  assert.doesNotMatch(manifest.content_security_policy.extension_pages, /form-action/);
+  assert.match(manifest.content_security_policy.extension_pages, /object-src 'none'/);
+  assert.notEqual(
+    manifest.browser_specific_settings.gecko.id,
+    "{ef7aaca3-7766-4ceb-9804-ae3df281a721}",
+  );
+});
+
+test("mantém o ID da Ravue para atualização automática", () => {
+  assert.equal(
+    manifest.browser_specific_settings.gecko.id,
+    "{351e58ce-b7a8-4e88-b53f-d23acc464659}",
+  );
 });
 
 test("usa o nome público definitivo e descrições localizadas precisas", () => {
   for (const locale of ["pt_BR", "en"]) {
-    const messages = JSON.parse(fs.readFileSync(path.join(root, "_locales", locale, "messages.json"), "utf8"));
+    const messages = JSON.parse(read(`_locales/${locale}/messages.json`));
     assert.equal(messages.appName.message, "Ravue — Visual Search for Firefox");
     assert.match(messages.appDescription.message, /image|imagem/i);
     assert.match(messages.appDescription.message, /Google Lens/);
     assert.ok(messages.appDescription.message.length <= 132);
-  }
-});
-
-test("todos os recursos declarados existem", () => {
-  assertFile(manifest.background.page);
-  for (const file of Object.values(manifest.icons)) assertFile(file);
-  for (const file of Object.values(manifest.browser_action.default_icon)) assertFile(file);
-  for (const file of manifest.web_accessible_resources) assertFile(file);
-  for (const script of manifest.content_scripts) {
-    for (const file of script.js || []) assertFile(file);
-    for (const file of script.css || []) assertFile(file);
-  }
-
-  for (const htmlName of [manifest.background.page, "results.html"]) {
-    const html = fs.readFileSync(path.join(root, htmlName), "utf8");
-    for (const match of html.matchAll(/(?:src|href)="([^"]+)"/g)) {
-      if (!match[1].startsWith("data:")) assertFile(match[1]);
+    assert.equal("resultTabGoogle403" in messages, false);
+    for (const id of [
+      "popupSubtitle",
+      "popupTitle",
+      "popupDescription",
+      "popupOpenSelector",
+      "popupImageBody",
+      "popupSmartBody",
+      "popupCorrectBody",
+      "popupVisibleBody",
+      "popupPrivacy",
+      "popupOpening",
+      "popupError",
+    ]) {
+      assert.equal(typeof messages[id]?.message, "string", `${locale}: ${id}`);
+      assert.ok(messages[id].message.length > 0, `${locale}: ${id} vazio`);
     }
   }
 });
 
-test("abre os resultados em uma nova guia normal", () => {
-  const source = filesBelow(root)
-    .filter((file) => /\.(?:js|mjs|html)$/.test(file))
-    .map((file) => fs.readFileSync(file, "utf8"))
-    .join("\n");
-  assert.match(source, /tabs\.create\s*\(\s*\{/);
-  assert.match(source, /openerTabId:\s*capture\.tabId/);
-  assert.match(source, /active:\s*true/);
-  assert.doesNotMatch(source, /windows\.create|type:\s*["']popup["']|resultPanels|panelGeometry/i);
-  assert.doesNotMatch(source, /window\.open|target\s*=\s*["']_blank/i);
-  assert.doesNotMatch(source, /sidebarAction|sidebar\.html|ravue-sidebar|postSidebar|sidebarConnections/i);
-  assert.match(source, /form\.target\s*=\s*["']_self["']/);
-  assert.match(source, /RV_TAKE_UPLOAD/);
-  assert.match(source, /https:\/\/lens\.google\.com\/v3\/upload/);
+test("o painel apresenta os controles e abre o seletor com acessibilidade", () => {
+  const html = read("popup/popup.html");
+  const css = read("popup/popup.css");
+  const script = read("popup/popup.js");
+  const background = read("background.mjs");
+
+  assert.match(html, /id="open-selector"/);
+  assert.match(html, /data-i18n="popupDescription"/);
+  assert.match(html, /data-i18n="popupImageBody"/);
+  assert.match(html, /data-i18n="popupSmartBody"/);
+  assert.match(html, /data-i18n="popupCorrectBody"/);
+  assert.match(html, /data-i18n="popupVisibleBody"/);
+  assert.match(html, /role="status"/);
+  assert.match(html, /aria-live="polite"/);
+  assert.doesNotMatch(html, /popupShortcut|shortcut-row|<kbd\b/);
+  assert.doesNotMatch(html, /<script(?![^>]*\bsrc=)[^>]*>/i);
+  assert.doesNotMatch(html, /https?:\/\//i);
+  assert.match(css, /width:\s*372px/);
+  assert.match(css, /\.controls\s*\{\s*margin-top:\s*18px;\s*\}/);
+  assert.match(css, /prefers-color-scheme:\s*dark/);
+  assert.match(css, /prefers-reduced-motion:\s*reduce/);
+  assert.match(script, /RV_POPUP_OPEN_SELECTOR/);
+  assert.match(script, /runtime\.getManifest/);
+  assert.doesNotMatch(script, /tabs\.(?:create|update|remove)|https?:\/\//);
+  assert.match(background, /extensionPage\(sender, ["']popup\/popup\.html["']\)/);
+  assert.match(background, /browser\.tabs\.query\(\{ active: true, currentWindow: true \}\)/);
 });
 
-test("envia o arquivo por POST direto antes de sair da página da extensão", () => {
-  const detector = fs.readFileSync(path.join(root, "content/lens-result.js"), "utf8");
-  const results = fs.readFileSync(path.join(root, "results.mjs"), "utf8");
-  assert.equal(manifest.content_scripts[0].run_at, "document_start");
-  assert.match(results, /new DataTransfer\s*\(\)/);
-  assert.match(results, /image\.name\s*=\s*["']encoded_image["']/);
-  assert.match(results, /form\.method\s*=\s*["']POST["']/);
-  assert.match(results, /form\.submit\s*\(\)/);
-  assert.doesNotMatch(results, /location\.replace|ravue-upload/);
-  assert.doesNotMatch(detector, /RV_TAKE_UPLOAD|form\.submit|window\.stop/);
-  assert.match(detector, /RV_LENS_TAB_ERROR/);
-  assert.match(detector, /\\b403\\b/);
+test("todos os recursos locais declarados ou importados existem", () => {
+  for (const file of manifest.background.scripts) assertFile(file);
+  for (const file of Object.values(manifest.icons)) assertFile(file);
+  for (const file of Object.values(manifest.action.default_icon)) assertFile(file);
+  for (const file of [
+    "content/geometry.js",
+    "content/target.js",
+    "content/direct-image.js",
+    "content/smart-selection.js",
+    "content/overlay.js",
+    "content/bridge.js",
+    "content/google-upload.js",
+    "content/loading-screen.js",
+    "content/lens-ready.js",
+    "shared/session-store.js",
+    "shared/pending-store.js",
+    "ui/overlay.css",
+    "results.html",
+    "popup/popup.html",
+    "popup/popup.css",
+    "popup/popup.js",
+  ]) assertFile(file);
+
+  for (const moduleName of ["background.mjs", "results.mjs"]) {
+    for (const match of read(moduleName).matchAll(/import\s+["']\.\/([^"']+)["']/g)) {
+      assertFile(match[1]);
+    }
+  }
+
+  const html = read("results.html");
+  for (const match of html.matchAll(/(?:src|href)="([^"]+)"/g)) {
+    if (!match[1].startsWith("data:")) assertFile(match[1]);
+  }
+
+  const popupHtml = read("popup/popup.html");
+  for (const match of popupHtml.matchAll(/(?:src|href)="([^"]+)"/g)) {
+    if (match[1].startsWith("data:")) continue;
+    const resolved = path.posix.normalize(path.posix.join("popup", match[1]));
+    assertFile(resolved);
+  }
+  assert.equal(fs.existsSync(path.join(root, "background.html")), false);
+  assert.equal(fs.existsSync(path.join(root, "content/lens-result.js")), false);
 });
 
-test("os comandos de imagem e área seguem fluxos distintos", () => {
-  const background = fs.readFileSync(path.join(root, "background.mjs"), "utf8");
-  const handler = background.slice(background.indexOf("browser.contextMenus.onClicked"));
+test("prioriza a URL pública e preserva o upload de arquivo como contingência", () => {
+  const background = read("background.mjs");
+  const googleUpload = read("content/google-upload.js");
+  const loadingScreen = read("content/loading-screen.js");
+  const lensReady = read("content/lens-ready.js");
+  const results = read("results.mjs");
+  const session = read("shared/session-store.js");
+  const pending = read("shared/pending-store.js");
+
+  assert.match(background, /browser\.tabs\.create\s*\(\s*\{/);
+  assert.match(background, /openerTabId:\s*tab\.id/);
+  assert.match(background, /url:\s*browser\.runtime\.getURL\(["']results\.html["']\)/);
+  assert.match(background, /active:\s*true/);
+  assert.match(background, /RavueSessionStore\.put\(uploadId, image\)/);
+  assert.doesNotMatch(background, /RavueSessionStore\.put\([^\n]*screenshot/);
+  assert.match(background, /RavuePendingStore\.put\(result\.id, uploadId\)/);
+  assert.match(background, /RavuePendingStore\.putUrl\(result\.id, sourceUrl\)/);
+  assert.match(background, /RV_START_GOOGLE_STAGE/);
+  assert.match(background, /browser\.tabs\.update\(sender\.tab\.id, \{ url: GOOGLE_IMAGES_URL \}\)/);
+  assert.match(background, /changeInfo\.status === ["']loading["']/);
+  assert.match(background, /changeInfo\.status !== ["']complete["']/);
+  assert.match(background, /RavuePendingStore\.markSubmitting/);
+  assert.match(background, /RavuePendingStore\.markNavigating/);
+  assert.match(background, /RavuePendingStore\.markUrlNavigating/);
+  assert.match(background, /RV_REVEAL_LENS/);
+  assert.doesNotMatch(background, /loadingTabId|takeByLoadingTab/);
+  assert.match(results, /requestAnimationFrame\(\(\) => requestAnimationFrame/);
+  assert.match(results, /RV_START_GOOGLE_STAGE/);
+  assert.match(loadingScreen, /data-ravue-loading-screen/);
+  assert.match(loadingScreen, /resultTabTitle/);
+  assert.match(lensReady, /RV_LENS_RESULT_PROBE/);
+  assert.match(lensReady, /RV_LENS_DOCUMENT_READY/);
+  assert.match(lensReady, /RV_REVEAL_LENS/);
+  assert.match(googleUpload, /data-is-images-mode/);
+  assert.match(googleUpload, /trigger\.click\(\)/);
+  assert.match(googleUpload, /waitForDocumentComplete\(environment\)/);
+  assert.match(googleUpload, /input\[type=["']file["']\]/);
+  assert.match(googleUpload, /jscontroller=[\\"']lpsUAf/);
+  assert.match(googleUpload, /new environment\.DataTransfer\s*\(\)/);
+  assert.match(googleUpload, /new environment\.Event\(["']change["']/);
+  assert.doesNotMatch(googleUpload, /function urlInput|function submitUrl|response\.sourceUrl/);
+  assert.match(googleUpload, /RESULT_TIMEOUT_MS\s*=\s*20000/);
+  assert.match(googleUpload, /google-result-timeout/);
+  assert.match(googleUpload, /RavueLoadingScreen\?\.mount/);
+  assert.doesNotMatch(googleUpload, /form\.action\s*=|ep=ccm|uploadbyurl|lens\.google\.com/);
+  assert.match(background, /https:\/\/lens\.google\.com\/uploadbyurl/);
+  assert.match(background, /lens\.searchParams\.set\(["']url["'], route\.sourceUrl\)/);
+  assert.match(session, /storage\?\.session/);
+  assert.match(pending, /storage\?\.session/);
+  assert.doesNotMatch(session, /storage\?\.(?:local|sync)|storage\.(?:local|sync)/);
+  assert.doesNotMatch(pending, /storage\?\.(?:local|sync)|storage\.(?:local|sync)/);
+});
+
+test("os comandos de imagem e área seguem fluxos distintos com URL pública prioritária", () => {
+  const background = read("background.mjs");
+  const directImage = read("content/direct-image.js");
+  const handler = background.slice(background.indexOf("menus.onClicked"));
   const direct = background.slice(
     background.indexOf("async function searchImage("),
-    background.indexOf("function takeUpload("),
+    background.indexOf("async function searchCapture("),
   );
 
   assert.match(handler, /menuItemId === ["']ravue-image["']\) return searchImageSafely/);
   assert.match(handler, /menuItemId === ["']ravue-area["']\) return startSafely/);
-  assert.doesNotMatch(handler, /ravue-image["']\s*\|\|[^\n]+ravue-area[^\n]+startSafely/);
   assert.match(direct, /captureClickedImage\(tab, menuInfo\)/);
-  assert.match(direct, /queueImageUpload/);
-  assert.match(direct, /openImageUrlResults/);
+  assert.match(direct, /queueImageUpload\(tab, image\)/);
+  assert.match(direct, /publicImageSource\(menuInfo\?\.srcUrl\)/);
+  assert.match(direct, /openUrlResultTab\(tab, source\)/);
+  assert.match(direct, /directImageError/);
   assert.doesNotMatch(direct, /startSelection|RV_OPEN_OVERLAY/);
+  assert.match(background, /function publicImageSource/);
+  assert.match(background, /https:\/\/lens\.google\.com\/uploadbyurl/);
+  assert.match(background, /RV_DIRECT_IMAGE_BEGIN/);
+  const capture = background.slice(
+    background.indexOf("async function captureClickedImage("),
+    background.indexOf("function publicImageSource("),
+  );
+  assert.match(capture, /captureRenderedImage\(tab, started\.plan\)/);
+  assert.ok(
+    direct.indexOf("publicImageSource(menuInfo?.srcUrl)") <
+      direct.indexOf("captureClickedImage(tab, menuInfo)"),
+    "a URL pública deve ser escolhida antes dos caminhos de captura",
+  );
+  assert.doesNotMatch(background, /RV_DIRECT_IMAGE_SCROLL|RV_DIRECT_IMAGE_RESTORE|fullAxisCoverage|scrollTo\s*\(/);
+  assert.match(directImage, /getTargetElement/);
+  assert.match(directImage, /documentObject\?\.images/);
+  assert.match(directImage, /drawImage\(target, 0, 0, size\.width, size\.height\)/);
+  assert.doesNotMatch(directImage, /fetch\s*\(|tabs?\.create|tabs?\.update|uploadbyurl|scrollTo\s*\(/);
 });
 
-test("a busca direta usa recorte local e fallback restrito à URL da imagem", () => {
-  const background = fs.readFileSync(path.join(root, "background.mjs"), "utf8");
-  assert.match(background, /globalThis\.RavueGeometry\.valid\(target\.rect, 1\)/);
-  assert.match(background, /cropCapture\(capture, target\.rect, layout\.viewport\)/);
-  assert.match(background, /\["http:", "https:"\]\.includes\(url\.protocol\)/);
-  assert.match(background, /new URL\(["']https:\/\/lens\.google\.com\/uploadbyurl["']\)/);
-  assert.match(background, /lens\.searchParams\.set\(["']url["'], source\)/);
+test("o background respeita o ciclo de vida não persistente do MV3", () => {
+  const background = read("background.mjs");
+  const firstListener = background.indexOf("browser.runtime.onMessage.addListener");
+  const cleanup = background.indexOf("RavueSessionStore.cleanup()");
+
+  assert.ok(firstListener > 0 && cleanup > firstListener);
+  assert.match(background, /browser\.runtime\.onInstalled\.addListener/);
+  assert.match(background, /browser\.runtime\.onStartup\.addListener/);
+  assert.match(background, /browser\.scripting\.executeScript/);
+  assert.match(background, /browser\.action\.onClicked/);
+  assert.doesNotMatch(background, /browser\.browserAction|tabs\.executeScript|setInterval/);
+  assert.doesNotMatch(background, /const\s+(?:captures|uploads|resultTabs)\b/);
+  assert.doesNotMatch(background, /^await\s+browser\.contextMenus/m);
 });
 
-test("não preserva nomenclatura ou lógica da antiga janela lateral", () => {
+test("a injeção resiste a CSP forte e trata lazy loading e object-fit", () => {
+  const background = read("background.mjs");
+  const directImage = read("content/direct-image.js");
+  const overlay = read("content/overlay.js");
+  const bridge = read("content/bridge.js");
+  const target = read("content/target.js");
+  const smart = read("content/smart-selection.js");
+
+  assert.match(background, /fetch\(browser\.runtime\.getURL\(["']ui\/overlay\.css["']\)\)/);
+  assert.match(background, /styles,/);
+  assert.match(overlay, /adoptedStyleSheets/);
+  assert.match(overlay, /replaceSync\(this\.config\.styles\)/);
+  assert.match(overlay, /createImageBitmap\(this\.screenshotBlob\(\)\)/);
+  assert.match(overlay, /<canvas class="rv-shot"/);
+  assert.doesNotMatch(overlay, /<link|createElement\(["']link["']\)|runtime\.getURL/);
+  assert.match(directImage, /target\.decode\(\)/);
+  assert.match(directImage, /naturalWidth/);
+  assert.doesNotMatch(background, /initialSelection|RV_TARGET_RECT/);
+  assert.doesNotMatch(bridge, /initialSelection|RV_TARGET_RECT/);
+  assert.doesNotMatch(overlay, /initialSelection|imageReady/);
+  assert.match(overlay, /document\.createElement\(["']img["']\)/);
+  assert.match(target, /objectFit/);
+  assert.match(target, /scale-down/);
+  assert.match(background, /"content\/target\.js",\s*"content\/smart-selection\.js",\s*"content\/overlay\.js"/s);
+  assert.match(overlay, /ANALYSIS_MAX_SIDE\s*=\s*960/);
+  assert.match(overlay, /gesture\.type === "draw" && !gesture\.travelled/);
+  assert.match(overlay, /this\.smartSelection\(gesture\.origin, event\)/);
+  assert.match(overlay, /contextmenu/);
+  assert.match(overlay, /clearFromContextMenu/);
+  assert.match(overlay, /event\.stopPropagation\(\)/);
+  assert.match(smart, /targetAtPoint/);
+  assert.match(smart, /regionCandidate/);
+  assert.match(smart, /toneCandidate/);
+  assert.match(smart, /reliableVisual/);
+  assert.match(smart, /MAX_ACCEPTED_COVERAGE/);
+  assert.doesNotMatch(smart, /fetch\s*\(|XMLHttpRequest|browser\.|chrome\./);
+});
+
+test("não preserva nomenclatura ou lógica das implementações antigas", () => {
   const productionFiles = filesBelow(root).filter((file) => /\.(?:json|js|mjs|html)$/.test(file));
   const source = productionFiles.map((file) => fs.readFileSync(file, "utf8")).join("\n");
-  assert.doesNotMatch(source, /RV_IS_RESULT_PANEL|RV_LENS_PANEL_ERROR|openResultsPanel|knownResultPanel|resultWindow|resultPanel/i);
-});
-
-test("remove completamente a barra lateral antiga do pacote", () => {
+  assert.doesNotMatch(
+    source,
+    /RV_IS_RESULT_PANEL|RV_LENS_PANEL_ERROR|openResultsPanel|knownResultPanel|resultWindow|resultPanel/i,
+  );
+  assert.doesNotMatch(source, /RV_TAKE_UPLOAD|RV_IS_RESULT_TAB|RV_LENS_TAB_ERROR|RV_CANCEL_CAPTURE/);
   assert.equal(fs.existsSync(path.join(root, "sidebar.html")), false);
   assert.equal(fs.existsSync(path.join(root, "sidebar.mjs")), false);
   assert.equal(fs.existsSync(path.join(root, "ui/sidebar.css")), false);
-  const names = filesBelow(root).map(relative).join("\n");
-  assert.doesNotMatch(names, /(?:^|\/)sidebar(?:\.|\/)/i);
 });
 
 test("não contém artefatos nem referências da base anterior", () => {
@@ -164,22 +363,42 @@ test("não contém artefatos nem referências da base anterior", () => {
   }
 });
 
-test("o pacote não contém recursos remotos nem interceptação de rede", () => {
+test("não contém código remoto nem interceptação de rede", () => {
   const sourceFiles = filesBelow(root).filter((file) => /\.(?:json|js|mjs|html)$/.test(file));
   const source = sourceFiles.map((file) => fs.readFileSync(file, "utf8")).join("\n");
-  assert.doesNotMatch(source, /<all_urls>|webRequest|webRequestBlocking/);
-  const urls = [...source.matchAll(/https?:\/\/[^"'`\s]+/g)].map((match) => match[0]);
-  assert.equal(urls.every((url) => /^https:\/\/lens\.google\.com(?:\/v3\/upload|\/uploadbyurl|\/\*)?/.test(url)), true);
+  assert.doesNotMatch(source, /<all_urls>|webRequest|webRequestBlocking|eval\s*\(|new Function\s*\(/);
+  assert.doesNotMatch(source, /import\s*\(\s*["']https?:|<script[^>]+https?:/i);
+  const urls = [...source.matchAll(/https?:\/\/[^"'\s]+/g)].map((match) => match[0]);
+  assert.equal(urls.length > 0, true);
+  assert.equal(urls.every((url) => (
+    url.startsWith("https://lens.google.com") ||
+    url.startsWith("https://images.google.com")
+  )), true);
 });
 
-test("inclui documentação completa para publicação e revisão do AMO", () => {
-  const publication = fs.readFileSync(path.join(root, "AMO_PUBLICATION.md"), "utf8");
-  const privacy = fs.readFileSync(path.join(root, "PRIVACY.md"), "utf8");
+test("documenta com precisão privacidade, MV3 e revisão do AMO", () => {
+  const publication = read("AMO_PUBLICATION.md");
+  const privacy = read("PRIVACY.md");
+  const readme = read("README.md");
+
   assert.match(publication, /Ravue — Visual Search for Firefox/);
+  assert.match(publication, /2\.1\.5/);
+  assert.match(publication, /2\.1\.6/);
+  assert.match(publication, /Manifest V3/);
   assert.match(publication, /Notes for Reviewers/);
   assert.match(publication, /Test 1 — direct image search/);
   assert.match(publication, /Test 2 — area selection/);
   assert.match(publication, /websiteContent/);
-  assert.match(privacy, /endereço de origem da própria imagem/);
-  assert.match(privacy, /servidor próprio/);
+  assert.match(privacy, /imagem inteira/i);
+  assert.match(privacy, /não rola|não chama funções de rolagem|não rolar|sem rolar/i);
+  assert.match(privacy, /storage\.session/);
+  assert.match(privacy, /URL pública específica|URL específica da imagem/i);
+  assert.match(privacy, /não envia a URL da página/i);
+  assert.match(privacy, /uploadbyurl/);
+  assert.doesNotMatch(privacy, /captura restrita ao retângulo completo/i);
+  assert.match(readme, /Manifest V3/);
+  assert.match(readme, /somente para consulta/i);
+  assert.match(readme, /clique.*selecion/i);
+  assert.match(readme, /imagem inteira.*ambígu|ambígu.*imagem inteira/i);
+  assert.match(privacy, /análise visual.*local/i);
 });

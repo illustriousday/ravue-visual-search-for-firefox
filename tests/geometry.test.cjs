@@ -43,6 +43,46 @@ test("converte coordenadas CSS em pixels do bitmap com arredondamento seguro", (
   );
 });
 
+test("preserva a área inteira em telas HiDPI", () => {
+  assert.deepEqual(
+    geometry.pixels(
+      { x: 0, y: 0, width: 1280, height: 720 },
+      { width: 1280, height: 720 },
+      { width: 3840, height: 2160 },
+    ),
+    { x: 0, y: 0, width: 3840, height: 2160, ratioX: 3, ratioY: 3 },
+  );
+});
+
+test("mapeia zoom e escalas fracionárias sem perder pixels nas bordas", () => {
+  assert.deepEqual(
+    geometry.pixels(
+      { x: 799.2, y: 599.4, width: 0.8, height: 0.6 },
+      { width: 800, height: 600 },
+      { width: 1250, height: 937 },
+    ),
+    {
+      x: 1248,
+      y: 935,
+      width: 2,
+      height: 2,
+      ratioX: 1.5625,
+      ratioY: 937 / 600,
+    },
+  );
+});
+
+test("aceita proporções distintas do bitmap sem deslocar o recorte", () => {
+  assert.deepEqual(
+    geometry.pixels(
+      { x: 100, y: 50, width: 200, height: 100 },
+      { width: 800, height: 600 },
+      { width: 1600, height: 1500 },
+    ),
+    { x: 200, y: 125, width: 400, height: 250, ratioX: 2, ratioY: 2.5 },
+  );
+});
+
 test("rejeita geometrias inválidas", () => {
   assert.equal(geometry.valid(null), false);
   assert.equal(geometry.valid({ x: 0, y: 0, width: 19, height: 30 }, 20), false);

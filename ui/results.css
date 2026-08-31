@@ -4,9 +4,9 @@
   --surface: rgba(255, 255, 255, .78);
   --border: rgba(15, 23, 42, .09);
   --text: #111827;
-  --muted: #64748b;
+  --muted: #5d6c82;
   --accent: #5b5ce2;
-  --accent-two: #0891b2;
+  --accent-two: #08758e;
   --danger: #be123c;
   --shadow: 0 22px 60px rgba(31, 41, 55, .12);
 }

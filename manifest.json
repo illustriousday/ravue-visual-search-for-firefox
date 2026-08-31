@@ -1,13 +1,13 @@
 {
-  "manifest_version": 2,
+  "manifest_version": 3,
   "name": "__MSG_appName__",
-  "version": "1.4.1",
+  "version": "2.1.6",
   "description": "__MSG_appDescription__",
   "default_locale": "pt_BR",
   "browser_specific_settings": {
     "gecko": {
       "id": "{351e58ce-b7a8-4e88-b53f-d23acc464659}",
-      "strict_min_version": "140.0",
+      "strict_min_version": "142.0",
       "data_collection_permissions": {
         "required": ["websiteContent"],
         "optional": []
@@ -24,11 +24,17 @@
   },
   "permissions": [
     "activeTab",
-    "contextMenus",
+    "menus",
+    "scripting",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://images.google.com/*",
     "https://lens.google.com/*"
   ],
-  "browser_action": {
-    "default_title": "__MSG_browserAction__",
+  "action": {
+    "default_title": "__MSG_actionTitle__",
+    "default_popup": "popup/popup.html",
     "default_icon": {
       "16": "icons/ravue-16.png",
       "32": "icons/ravue-32.png"
@@ -43,20 +49,22 @@
     }
   },
   "background": {
-    "page": "background.html"
+    "scripts": ["background.mjs"],
+    "type": "module"
   },
   "content_scripts": [
     {
-      "matches": [
-        "https://lens.google.com/v3/upload*",
-        "https://lens.google.com/uploadbyurl*"
-      ],
-      "js": ["content/lens-result.js"],
+      "matches": ["https://images.google.com/*"],
+      "js": ["content/loading-screen.js", "content/google-upload.js"],
+      "run_at": "document_start"
+    },
+    {
+      "matches": ["https://lens.google.com/*"],
+      "js": ["content/loading-screen.js", "content/lens-ready.js"],
       "run_at": "document_start"
     }
   ],
-  "web_accessible_resources": [
-    "ui/overlay.css"
-  ],
-  "content_security_policy": "script-src 'self'; object-src 'none'; form-action https://lens.google.com; base-uri 'none'"
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'none'; base-uri 'none'; upgrade-insecure-requests"
+  }
 }

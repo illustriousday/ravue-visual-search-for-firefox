@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="2400" viewBox="0 0 600 2400">
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#4c1d95"/>
+      <stop offset=".5" stop-color="#0891b2"/>
+      <stop offset="1" stop-color="#be185d"/>
+    </linearGradient>
+  </defs>
+  <rect width="600" height="2400" fill="url(#background)"/>
+  <g fill="#fff" font-family="sans-serif" text-anchor="middle">
+    <text x="300" y="180" font-size="72" font-weight="700">INÍCIO</text>
+    <circle cx="300" cy="600" r="150" fill="#fff" opacity=".2"/>
+    <text x="300" y="1220" font-size="72" font-weight="700">MEIO</text>
+    <rect x="150" y="1510" width="300" height="300" rx="60" fill="#fff" opacity=".2"/>
+    <text x="300" y="2260" font-size="72" font-weight="700">FIM</text>
+  </g>
+</svg>

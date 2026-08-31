@@ -3,13 +3,19 @@
 
   const EDGES = ["n", "ne", "e", "se", "s", "sw", "w", "nw"];
   const MINIMUM = 24;
+  const ANALYSIS_MAX_SIDE = 960;
 
   class RavueOverlaySession {
     constructor(config) {
       if (!scope.RavueGeometry) throw new Error("Ravue geometry is not ready");
       if (!config?.screenshot) throw new Error("Ravue requires a screenshot");
+      if (typeof config?.styles !== "string" || !config.styles.trim()) {
+        throw new Error("Ravue styles are not ready");
+      }
 
       this.geometry = scope.RavueGeometry;
+      this.smart = scope.RavueSmartSelection || null;
+      this.analysisImageData = null;
       this.config = config;
       this.copy = config.copy || {};
       this.selection = null;
@@ -30,10 +36,20 @@
       this.host.style.cssText = "all:initial;position:fixed;inset:0;width:100vw;height:100vh;display:block;z-index:2147483647;contain:strict";
       this.root = this.host.attachShadow({ mode: "closed" });
 
-      const stylesheet = document.createElement("link");
-      stylesheet.rel = "stylesheet";
-      stylesheet.href = browser.runtime.getURL("ui/overlay.css");
-      this.root.appendChild(stylesheet);
+      let stylesInstalled = false;
+      if (typeof scope.CSSStyleSheet === "function" && "adoptedStyleSheets" in this.root) {
+        try {
+          const stylesheet = new scope.CSSStyleSheet();
+          stylesheet.replaceSync(this.config.styles);
+          this.root.adoptedStyleSheets = [stylesheet];
+          stylesInstalled = true;
+        } catch (_) {}
+      }
+      if (!stylesInstalled) {
+        const stylesheet = document.createElement("style");
+        stylesheet.textContent = this.config.styles;
+        this.root.appendChild(stylesheet);
+      }
 
       this.shell = document.createElement("section");
       this.shell.className = "rv-shell";
@@ -42,7 +58,7 @@
       this.shell.setAttribute("aria-modal", "true");
       this.shell.setAttribute("aria-label", this.label("title", "Ravue"));
       this.shell.innerHTML = `
-        <img class="rv-shot" alt="">
+        <canvas class="rv-shot" aria-hidden="true"></canvas>
         <div class="rv-shade"></div>
         <div class="rv-stage" tabindex="-1">
           <div class="rv-selection" tabindex="0" role="img" hidden></div>
@@ -77,7 +93,6 @@
       this.searchButton = this.root.querySelector('[data-command="search"]');
       this.stage.style.cssText = "position:absolute;inset:0;width:100%;height:100%;touch-action:none";
 
-      this.shot.src = this.config.screenshot;
       this.root.querySelector('[data-copy="title"]').textContent = this.label("title", "Ravue");
       this.root.querySelector('[data-copy="privacy"]').textContent = this.label("privacy", "Nothing is sent until you confirm");
       this.root.querySelector('[data-copy="hint"]').textContent = this.label("hint", "Drag over what you want to find");
@@ -100,6 +115,7 @@
         pointerDown: (event) => this.begin(event),
         pointerMove: (event) => this.move(event),
         pointerEnd: (event) => this.end(event),
+        contextMenu: (event) => this.clearFromContextMenu(event),
         keyDown: (event) => this.key(event),
         resize: () => this.resize(),
         stopScroll: (event) => event.preventDefault(),
@@ -109,7 +125,7 @@
       this.stage.addEventListener("pointermove", this.handlers.pointerMove);
       this.stage.addEventListener("pointerup", this.handlers.pointerEnd);
       this.stage.addEventListener("pointercancel", this.handlers.pointerEnd);
-      this.stage.addEventListener("contextmenu", this.handlers.stopScroll);
+      this.stage.addEventListener("contextmenu", this.handlers.contextMenu);
       window.addEventListener("wheel", this.handlers.stopScroll, { capture: true, passive: false });
       window.addEventListener("touchmove", this.handlers.stopScroll, { capture: true, passive: false });
       window.addEventListener("keydown", this.handlers.keyDown, true);
@@ -121,11 +137,76 @@
       this.fullButton.addEventListener("click", () => this.selectAll());
       this.searchButton.addEventListener("click", () => this.submit());
 
-      if (this.config.initialSelection) {
-        this.selection = this.geometry.fit(this.config.initialSelection, this.bounds(), MINIMUM);
-      }
       this.render();
       this.closeButton.focus({ preventScroll: true });
+      this.ready = this.paintScreenshot()
+        .catch((error) => {
+          if (this.closed) return;
+          this.error = error?.message || this.label("error", "This page could not be displayed");
+          this.render();
+        });
+    }
+
+    screenshotBlob() {
+      const prefix = "data:image/png;base64,";
+      if (!this.config.screenshot.startsWith(prefix)) throw new Error("Invalid screenshot");
+      const decoded = scope.atob(this.config.screenshot.slice(prefix.length));
+      const bytes = new Uint8Array(decoded.length);
+      for (let index = 0; index < decoded.length; index += 1) {
+        bytes[index] = decoded.charCodeAt(index);
+      }
+      return new Blob([bytes], { type: "image/png" });
+    }
+
+    async paintScreenshot() {
+      if (typeof scope.createImageBitmap === "function") {
+        try {
+          const bitmap = await scope.createImageBitmap(this.screenshotBlob());
+          try {
+            if (this.closed) return;
+            this.shot.width = bitmap.width;
+            this.shot.height = bitmap.height;
+            const context = this.shot.getContext("2d", { alpha: false });
+            if (!context) throw new Error("Screenshot canvas is unavailable");
+            context.drawImage(bitmap, 0, 0);
+            this.prepareAnalysis(bitmap);
+            return;
+          } finally {
+            bitmap.close();
+          }
+        } catch (_) {}
+      }
+
+      if (this.closed) return;
+      const image = document.createElement("img");
+      image.className = "rv-shot";
+      image.alt = "";
+      image.draggable = false;
+      this.shot.replaceWith(image);
+      this.shot = image;
+      await loadScreenshotImage(image, this.config.screenshot);
+      this.prepareAnalysis(image);
+    }
+
+    prepareAnalysis(source) {
+      if (!this.smart || typeof document.createElement !== "function") return;
+      this.analysisImageData = null;
+      try {
+        const sourceWidth = Number(source?.naturalWidth || source?.width);
+        const sourceHeight = Number(source?.naturalHeight || source?.height);
+        if (!Number.isFinite(sourceWidth) || !Number.isFinite(sourceHeight) ||
+            sourceWidth <= 0 || sourceHeight <= 0) return;
+        const scale = Math.min(1, ANALYSIS_MAX_SIDE / sourceWidth, ANALYSIS_MAX_SIDE / sourceHeight);
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, Math.round(sourceWidth * scale));
+        canvas.height = Math.max(1, Math.round(sourceHeight * scale));
+        const context = canvas.getContext("2d", { alpha: false, willReadFrequently: true });
+        if (!context) return;
+        context.drawImage(source, 0, 0, canvas.width, canvas.height);
+        this.analysisImageData = context.getImageData(0, 0, canvas.width, canvas.height);
+      } catch (_) {
+        this.analysisImageData = null;
+      }
     }
 
     bounds() {
@@ -139,6 +220,29 @@
         x: this.geometry.between(event.clientX - frame.left, 0, frame.width),
         y: this.geometry.between(event.clientY - frame.top, 0, frame.height),
       };
+    }
+
+    smartSelection(point, event) {
+      if (!this.smart) return null;
+      const viewport = this.bounds();
+      let target = null;
+      try {
+        target = this.smart.targetAtPoint(document, {
+          x: event.clientX,
+          y: event.clientY,
+        }, this.host, viewport);
+      } catch (_) {}
+      try {
+        const selected = this.smart.select({
+          imageData: this.analysisImageData,
+          point,
+          viewport,
+          target,
+        });
+        return selected?.rect ? this.geometry.fit(selected.rect, viewport, MINIMUM) : null;
+      } catch (_) {
+        return target?.rect ? this.geometry.fit(target.rect, viewport, MINIMUM) : null;
+      }
     }
 
     render() {
@@ -221,10 +325,14 @@
       this.gesture = null;
       if (this.stage.hasPointerCapture(event.pointerId)) this.stage.releasePointerCapture(event.pointerId);
 
-      if (gesture.type === "draw" && (!gesture.travelled || !this.geometry.valid(this.selection, MINIMUM))) {
+      if (gesture.type === "draw" && !gesture.travelled) {
+        this.selection = this.smartSelection(gesture.origin, event);
+      } else if (gesture.type === "draw" && !this.geometry.valid(this.selection, MINIMUM)) {
         this.selection = null;
       } else if (this.selection) {
         this.selection = this.geometry.fit(this.selection, this.bounds(), MINIMUM);
+      }
+      if (this.selection) {
         this.box.focus({ preventScroll: true });
       }
       this.render();
@@ -236,6 +344,14 @@
       this.selection = null;
       this.error = "";
       this.render();
+    }
+
+    clearFromContextMenu(event) {
+      event.preventDefault();
+      event.stopPropagation();
+      if (this.busy) return;
+      this.clear();
+      this.stage.focus({ preventScroll: true });
     }
 
     selectAll() {
@@ -268,14 +384,17 @@
     }
 
     key(event) {
-      if (this.closed) return;
+      if (this.closed || event.isComposing) return;
       if (event.key === "Escape") {
         event.preventDefault();
         event.stopPropagation();
         this.cancel();
         return;
       }
-      if (event.key === "Enter" && this.geometry.valid(this.selection, MINIMUM)) {
+      // A focused button owns its native Enter/Space activation. In particular,
+      // Enter on Cancel, Reset, Close or Visible page must never upload a crop.
+      if (event.key === "Enter" && this.root.activeElement?.tagName !== "BUTTON" &&
+          this.geometry.valid(this.selection, MINIMUM)) {
         event.preventDefault();
         event.stopPropagation();
         this.submit();
@@ -328,7 +447,21 @@
     }
   }
 
-  scope.RavueOverlay = Object.freeze({
+  function loadScreenshotImage(image, screenshot) {
+    return new Promise((resolve, reject) => {
+      image.addEventListener("load", resolve, { once: true });
+      image.addEventListener("error", () => reject(new Error("Screenshot decoding is unavailable")), { once: true });
+      image.src = screenshot;
+      if (image.complete && image.naturalWidth > 0) Promise.resolve().then(resolve);
+    });
+  }
+
+  const api = Object.freeze({
     open: (config) => new RavueOverlaySession(config),
+    loadScreenshotImage,
   });
+  scope.RavueOverlay = api;
+  if (typeof module === "object" && module.exports) {
+    module.exports = Object.freeze({ ...api, RavueOverlaySession });
+  }
 })(typeof globalThis === "undefined" ? this : globalThis);

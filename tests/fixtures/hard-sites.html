@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Ravue — casos difíceis</title>
+  <style>
+    :root { color-scheme: light dark; font-family: system-ui, sans-serif; }
+    body { margin: 0; padding: 24px; background: Canvas; color: CanvasText; }
+    main { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
+    section { border: 1px solid #8888; border-radius: 16px; padding: 16px; overflow: hidden; }
+    img, iframe { display: block; max-width: 100%; }
+    .fit { width: 320px; height: 180px; background: #e72e84; border: 5px solid #4527a0; padding: 8px; }
+    .contain { object-fit: contain; object-position: right top; }
+    .cover { object-fit: cover; object-position: 20% 80%; }
+    .lazy-space { height: 110vh; display: grid; place-items: end start; }
+    iframe { width: 100%; height: 220px; border: 2px solid #5a67d8; }
+  </style>
+</head>
+<body>
+  <h1>Casos difíceis da Ravue</h1>
+  <p>Use esta página somente para testes manuais da extensão.</p>
+  <main>
+    <section>
+      <h2>SVG em img</h2>
+      <img src="/sample.svg" width="320" height="180" alt="Amostra SVG">
+    </section>
+    <section>
+      <h2>Seleção inteligente</h2>
+      <img src="/smart-selection.svg" width="480" height="270" alt="Balão e legendas para testar a seleção inteligente">
+      <p>Clique no balão, nas duas legendas e no fundo; depois confirme que o arraste manual continua livre.</p>
+    </section>
+    <section>
+      <h2>WebP</h2>
+      <img src="/sample.webp" width="256" height="256" alt="Amostra WebP">
+    </section>
+    <section>
+      <h2>Imagem inteira maior que o viewport</h2>
+      <img src="/tall-sample.svg" width="320" alt="Amostra vertical com início, meio e fim">
+    </section>
+    <section>
+      <h2>Imagem cross-origin maior que o viewport</h2>
+      <img src="__CROSS_ORIGIN__/tall-sample.svg" width="320" alt="Amostra vertical cross-origin com início, meio e fim">
+    </section>
+    <section>
+      <h2>object-fit: contain</h2>
+      <img class="fit contain" src="/sample.svg" alt="SVG com contain">
+    </section>
+    <section>
+      <h2>object-fit: cover</h2>
+      <img class="fit cover" src="/sample.svg" alt="SVG com cover">
+    </section>
+    <section>
+      <h2>Iframe de mesma origem</h2>
+      <iframe src="/frame.html" title="Frame de mesma origem"></iframe>
+    </section>
+    <section>
+      <h2>Iframe de outra origem</h2>
+      <iframe src="__CROSS_ORIGIN__/frame.html" title="Frame de outra origem"></iframe>
+    </section>
+    <section class="lazy-space">
+      <div>
+        <h2>Lazy loading</h2>
+        <img loading="lazy" src="/sample.webp" width="256" height="256" alt="WebP com lazy loading">
+      </div>
+    </section>
+  </main>
+</body>
+</html>

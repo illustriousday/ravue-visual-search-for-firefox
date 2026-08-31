@@ -9,67 +9,34 @@ for (const element of document.querySelectorAll("[data-i18n]")) {
 
 function fail(message) {
   document.body.dataset.failed = "true";
+  document.querySelector('[data-i18n="resultTabTitle"]').textContent = t("resultFailureTitle");
+  document.querySelector('[data-i18n="resultTabBody"]').textContent = t("resultFailureBody");
+  document.querySelector('[data-i18n="resultTabHint"]').textContent = t("resultFailureHint");
   document.getElementById("result-error-detail").textContent = message;
   document.getElementById("result-error").hidden = false;
-}
-
-function extensionFor(mimeType) {
-  if (mimeType === "image/png") return "png";
-  if (mimeType === "image/webp") return "webp";
-  return "jpg";
-}
-
-async function imageFile(payload) {
-  const response = await fetch(payload.dataUrl);
-  if (!response.ok) throw new Error(t("resultTabExpired"));
-  const bytes = await response.arrayBuffer();
-  const mimeType = payload.mimeType || "image/jpeg";
-  return new File([bytes], `ravue-selection.${extensionFor(mimeType)}`, { type: mimeType });
-}
-
-async function submitToLens(payload) {
-  const file = await imageFile(payload);
-  const transfer = new DataTransfer();
-  transfer.items.add(file);
-
-  const form = document.createElement("form");
-  form.method = "POST";
-  form.enctype = "multipart/form-data";
-  form.action = `https://lens.google.com/v3/upload?ep=ccm&s=&st=${Date.now()}`;
-  form.target = "_self";
-  form.hidden = true;
-
-  const image = document.createElement("input");
-  image.type = "file";
-  image.name = "encoded_image";
-  image.files = transfer.files;
-  form.appendChild(image);
-
-  const dimensions = document.createElement("input");
-  dimensions.type = "hidden";
-  dimensions.name = "processed_image_dimensions";
-  dimensions.value = `${payload.width},${payload.height}`;
-  form.appendChild(dimensions);
-
-  document.body.appendChild(form);
-  form.submit();
-}
-
-async function launch() {
-  const query = new URLSearchParams(location.search);
-  const issue = query.get("error");
-  if (issue === "google403") throw new Error(t("resultTabGoogle403"));
-  if (issue) throw new Error(t("resultTabExpired"));
-  const uploadId = query.get("upload");
-  if (!uploadId) throw new Error(t("resultTabExpired"));
-  const payload = await browser.runtime.sendMessage({ type: "RV_TAKE_UPLOAD", uploadId });
-  if (!payload?.ok) throw new Error(payload?.error || t("resultTabExpired"));
-  await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-  await submitToLens(payload);
 }
 
 document.getElementById("close-tab").addEventListener("click", async () => {
   const result = await browser.runtime.sendMessage({ type: "RV_CLOSE_RESULT_TAB" }).catch(() => null);
   if (!result?.ok) window.close();
 });
-launch().catch((error) => fail(error?.message || t("resultTabError")));
+
+const issue = new URLSearchParams(location.search).get("error");
+if (issue) {
+  const detail = issue === "google-upload"
+    ? t("googleUploadUnavailable", "Google Images could not prepare this visual search. Please try again.")
+    : t("resultTabExpired", "This search expired. Close the tab and try again.");
+  fail(detail);
+} else {
+  launch().catch((error) => fail(error?.message || t("resultTabExpired")));
+}
+
+async function launch() {
+  await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const response = await browser.runtime.sendMessage({ type: "RV_START_GOOGLE_STAGE" }).catch(() => null);
+    if (response?.ok) return;
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+  throw new Error(t("resultTabExpired", "This search expired. Close the tab and try again."));
+}
