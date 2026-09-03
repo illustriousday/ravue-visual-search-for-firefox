@@ -2,7 +2,7 @@
 
 Finalized on September 3, 2026. Ravue 2.1.8 is based on the maintainer-accepted 2.1.7 implementation. Its only functional addition is direct image paste on the existing stable image-input page. The accepted file picker, drag/drop, direct-image, selector, preparation, and result flows remain in place. All automated and manual acceptance checks passed, and Ravue 2.1.8 was approved by AMO.
 
-Automated checks exercise packaged functions with explicit browser/DOM substitutes. Native pixel tests use Skia and libvips, not Gecko. The separate Firefox, signed-update, and AMO stages recorded below were also completed successfully.
+Automated validation tests exercise bundled functions through explicit browser and DOM replacements. Native pixel-level checks rely on Skia and libvips rather than Gecko. The independent Firefox, signed-update, and AMO stages documented below were likewise completed successfully.
 
 ## Automated coverage
 
