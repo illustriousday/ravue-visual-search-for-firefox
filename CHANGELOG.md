@@ -1,5 +1,24 @@
 # Ravue Changes
 
+## 2.1.8 — pasted image input
+
+Version 2.1.8 adds one optional image-input method without changing the accepted 2.1.7 file selection, drag and drop, page-image, area-selection, preparation, or result flows.
+
+### Added
+
+- The stable **Add an image** page now accepts an image pasted with the browser's normal paste command (`Ctrl+V`, or `Command+V` on macOS).
+- Pasted images reuse the existing local file preparation and single-tab Google Lens handoff.
+- Both Firefox clipboard file representations are handled: `clipboardData.files` and file entries from `clipboardData.items`.
+- Non-image clipboard content is ignored and normal paste behavior is left intact.
+- Focused tests cover clipboard extraction, image submission, and non-image paste behavior.
+
+### Preserved from 2.1.7
+
+- File selection and image drag/drop behavior, including supported formats, size limits, conversion rules, progress, and recovery.
+- Direct context-menu image search, area selection, preparation, results, session cleanup, and all established keyboard behavior.
+- Add-on ID, Manifest V3 architecture, minimum Firefox version, permissions, hosts, data declaration, icons, and localization mechanism.
+- No Clipboard API call or clipboard permission was added; image data is read only from a user-generated `paste` event on the stable image-input page.
+
 ## 2.1.7 — stable image input
 
 Version 2.1.7 adds two user-initiated ways to search an image without changing the accepted 2.1.6 page-image, area-selection, preparation, or result flows.

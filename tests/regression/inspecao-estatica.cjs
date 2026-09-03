@@ -9,7 +9,7 @@ const manifest=JSON.parse(read('manifest.json'));
 const checks=[];
 function check(id,detail,fn){try{fn();checks.push({id,detail,ok:true});}catch(error){checks.push({id,detail,ok:false,error:error.message});}}
 check('manifest', 'MV3, version, public ID, minimum desktop version, data declaration',()=>{
- assert.equal(manifest.manifest_version,3);assert.equal(manifest.version,'2.1.7');
+ assert.equal(manifest.manifest_version,3);assert.equal(manifest.version,'2.1.8');
  assert.equal(manifest.browser_specific_settings.gecko.id,'{351e58ce-b7a8-4e88-b53f-d23acc464659}');
  assert.equal(manifest.browser_specific_settings.gecko.strict_min_version,'142.0');
  assert.deepEqual(manifest.browser_specific_settings.gecko.data_collection_permissions,{required:['websiteContent'],optional:[]});

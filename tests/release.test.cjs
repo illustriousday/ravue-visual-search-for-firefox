@@ -67,7 +67,7 @@ const unchangedFrom216 = Object.freeze({
   "ui/results.css": "4b3ca141a05ccd3e3fa603e1211afcee6d628ba25d2f85b43fa01a29bd890c88",
 });
 
-test("preserves all 2.1.6 files outside the isolated 2.1.7 addition byte for byte", () => {
+test("preserves all 2.1.6 files outside the isolated later additions byte for byte", () => {
   for (const [name, expected] of Object.entries(unchangedFrom216)) {
     assert.equal(sha256(read(name)), expected, name);
   }
@@ -76,7 +76,7 @@ test("preserves all 2.1.6 files outside the isolated 2.1.7 addition byte for byt
 test("bumps only the version among the accepted manifest declarations", () => {
   const manifest = JSON.parse(read("manifest.json"));
   assert.equal(manifest.manifest_version, 3);
-  assert.equal(manifest.version, "2.1.7");
+  assert.equal(manifest.version, "2.1.8");
   assert.equal(manifest.default_locale, "pt_BR");
   assert.equal(manifest.browser_specific_settings.gecko.id, "{351e58ce-b7a8-4e88-b53f-d23acc464659}");
   assert.equal(manifest.browser_specific_settings.gecko.strict_min_version, "142.0");
@@ -119,10 +119,10 @@ test("keeps English and Brazilian Portuguese complete and structurally identical
   }
 });
 
-test("documents use English as the source default and describe 2.1.7", () => {
+test("documents use English as the source default and describe 2.1.8", () => {
   for (const name of ["README.md", "PRIVACY.md", "CHANGELOG.md", "TEST_MATRIX.md", "AMO_PUBLICATION.md"]) {
     const contents = read(name).toString("utf8");
-    assert.match(contents, /2\.1\.7/, name);
+    assert.match(contents, /2\.1\.8/, name);
     assert.doesNotMatch(contents, /Aplica-se|Privacidade e controle|Como usar|Notas ao revisor/, name);
   }
 });

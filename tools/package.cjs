@@ -59,14 +59,14 @@ function zip(entries) {
     local.writeUInt32LE(0x04034b50, 0); local.writeUInt16LE(20, 4);
     local.writeUInt16LE(0x800, 6); local.writeUInt16LE(8, 8);
     // Fixed UTC date for this release; no filesystem timestamps in the build.
-    local.writeUInt16LE(((2026 - 1980) << 9) | (8 << 5) | 30, 12);
+    local.writeUInt16LE(((2026 - 1980) << 9) | (9 << 5) | 3, 12);
     local.writeUInt32LE(crc, 14); local.writeUInt32LE(packed.length, 18);
     local.writeUInt32LE(bytes.length, 22); local.writeUInt16LE(filename.length, 26);
     chunks.push(local, filename, packed);
     const directory = Buffer.alloc(46);
     directory.writeUInt32LE(0x02014b50, 0); directory.writeUInt16LE(0x314, 4);
     directory.writeUInt16LE(20, 6); directory.writeUInt16LE(0x800, 8); directory.writeUInt16LE(8, 10);
-    directory.writeUInt16LE(((2026 - 1980) << 9) | (8 << 5) | 30, 14);
+    directory.writeUInt16LE(((2026 - 1980) << 9) | (9 << 5) | 3, 14);
     directory.writeUInt32LE(crc, 16); directory.writeUInt32LE(packed.length, 20);
     directory.writeUInt32LE(bytes.length, 24); directory.writeUInt16LE(filename.length, 28);
     directory.writeUInt32LE((0o100644 << 16) >>> 0, 38); directory.writeUInt32LE(offset, 42);
@@ -130,7 +130,7 @@ function writeNewOrIdentical(filename, bytes) {
 
 function build(destination) {
   const manifest = JSON.parse(fs.readFileSync(path.join(ROOT, "manifest.json"), "utf8"));
-  assert.equal(manifest.version, "2.1.7"); assert.equal(manifest.manifest_version, 3);
+  assert.equal(manifest.version, "2.1.8"); assert.equal(manifest.manifest_version, 3);
   const output = path.resolve(destination || path.join(ROOT, "..", "dist"));
   assert.ok(output !== ROOT && !output.startsWith(ROOT + path.sep), "Keep artifacts outside the source tree");
   fs.mkdirSync(output, { recursive: true });
@@ -140,8 +140,8 @@ function build(destination) {
   const allSource = new Map(sourceEntries.map(({ name, bytes }) => [name, bytes]));
   const runtimeEntries = RUNTIME.map((name) => { assert.ok(allSource.has(name), name); return { name, bytes: allSource.get(name) }; });
   const products = [
-    { name: "ravue-visual-search-v2.1.7.xpi", entries: runtimeEntries },
-    { name: "ravue-visual-search-v2.1.7-source.zip", entries: sourceEntries },
+    { name: "ravue-visual-search-v2.1.8.xpi", entries: runtimeEntries },
+    { name: "ravue-visual-search-v2.1.8-source.zip", entries: sourceEntries },
   ];
   const report = { manifestVersion: 3, version: manifest.version, id: manifest.browser_specific_settings.gecko.id, products: [], matchedRuntimeFiles: 0 };
   const archives = [];

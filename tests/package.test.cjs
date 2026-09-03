@@ -28,7 +28,7 @@ function read(file) {
 
 test("manifesto 3 usa permissões mínimas e uma versão de Firefox compatível", () => {
   assert.equal(manifest.manifest_version, 3);
-  assert.equal(manifest.version, "2.1.7");
+  assert.equal(manifest.version, "2.1.8");
   assert.equal(manifest.default_locale, "pt_BR");
   assert.deepEqual(manifest.permissions, ["activeTab", "menus", "scripting", "storage"]);
   assert.deepEqual(manifest.host_permissions, [
@@ -166,6 +166,7 @@ test("o painel preserva o seletor e abre uma página estável para arquivos", ()
   assert.doesNotMatch(script, /tabs\.(?:create|update|remove)|https?:\/\//);
   assert.match(imageInput, /RV_POPUP_OPEN_IMAGE_PAGE/);
   assert.match(imageInput, /RV_IMAGE_PAGE_SEARCH_ITEM/);
+  assert.match(imageInput, /addEventListener\("paste"/);
   assert.match(imageInput, /addEventListener\("drop"/);
   assert.match(imageInput, /MAX_SOURCE_BYTES\s*=\s*32 \* 1024 \* 1024/);
   assert.doesNotMatch(imageInput, /\bfetch\s*\(|XMLHttpRequest|tabs\.(?:create|update|remove)/);
@@ -433,14 +434,16 @@ test("documents privacy, MV3, file input, and AMO review accurately in English",
   const readme = read("README.md");
 
   assert.match(publication, /Ravue — Visual Search for Firefox/);
-  assert.match(publication, /2\.1\.6/);
   assert.match(publication, /2\.1\.7/);
+  assert.match(publication, /2\.1\.8/);
   assert.match(publication, /Manifest V3/);
   assert.match(publication, /Notes for Reviewers/);
   assert.match(publication, /direct image search/i);
   assert.match(publication, /area selection/i);
   assert.match(publication, /choose an image|image file/i);
   assert.match(publication, /drag/i);
+  assert.match(publication, /paste/i);
+  assert.match(publication, /no clipboard permission/i);
   assert.match(publication, /websiteContent/);
   assert.match(privacy, /complete image|full image/i);
   assert.match(privacy, /does not scroll/i);
@@ -448,7 +451,7 @@ test("documents privacy, MV3, file input, and AMO review accurately in English",
   assert.match(privacy, /specific (?:public )?URL|image(?:'s| URL) specific URL/i);
   assert.match(privacy, /does not send the page URL/i);
   assert.match(privacy, /uploadbyurl/);
-  assert.match(privacy, /chosen|dropped/i);
+  assert.match(privacy, /pasted|chosen|dropped/i);
   assert.match(privacy, /32 MB/);
   assert.match(readme, /Manifest V3/);
   assert.match(readme, /source-only|source code.*review|transparency/i);

@@ -137,6 +137,27 @@ test("rejects unsupported files and empty drag data", () => {
   );
 });
 
+test("extracts a pasted image from clipboard files or Firefox clipboard items", () => {
+  const direct = file({ name: "clipboard.png", type: "image/png" });
+  assert.equal(imageInput.pastedImageFile({ files: [direct] }), direct);
+
+  const itemFile = file({ name: "", type: "image/png" });
+  assert.equal(imageInput.pastedImageFile({
+    files: [],
+    items: [
+      { kind: "string", type: "text/plain", getAsFile() { throw new Error("must not run"); } },
+      { kind: "file", type: "image/png", getAsFile() { return itemFile; } },
+    ],
+  }), itemFile);
+});
+
+test("leaves ordinary text paste untouched", () => {
+  assert.equal(imageInput.pastedImageFile({
+    files: [],
+    items: [{ kind: "string", type: "text/plain" }],
+  }), null);
+});
+
 test("preserves eligible JPEG, PNG, and WebP bytes instead of re-encoding", async () => {
   for (const type of ["image/jpeg", "image/png", "image/webp"]) {
     const { environment, calls } = imageEnvironment({ width: 288, height: 412 });
@@ -259,7 +280,7 @@ function launchEnvironment(options = {}) {
       },
       runtime: {
         getURL(file) { return `moz-extension://ravue/${file}`; },
-        getManifest() { return { version: "2.1.7" }; },
+        getManifest() { return { version: "2.1.8" }; },
         async sendMessage(request) {
           requests.push(request);
           return options.response || {
@@ -327,7 +348,47 @@ test("the stable page file picker submits the selected image and becomes the exi
   assert.equal(state.requests[0].item.kind, "image");
   assert.equal(state.requests[0].item.payload.width, 288);
   assert.deepEqual(state.replacements, ["moz-extension://ravue/results.html"]);
-  assert.equal(state.version.textContent, "v2.1.7");
+  assert.equal(state.version.textContent, "v2.1.8");
+});
+
+test("the stable page submits an image pasted from the clipboard through the existing file path", async () => {
+  const state = launchEnvironment({ mode: "upload" });
+  imageInput.launchUploadPage(state.environment);
+  const prevented = [];
+  state.handlers.get("paste")({
+    preventDefault() { prevented.push("image"); },
+    clipboardData: {
+      files: [],
+      items: [{
+        kind: "file",
+        type: "image/png",
+        getAsFile() { return file({ name: "clipboard.png", type: "image/png" }); },
+      }],
+    },
+  });
+  await flush();
+  await flush();
+  assert.deepEqual(prevented, ["image"]);
+  assert.equal(state.requests.length, 1);
+  assert.equal(state.requests[0].type, "RV_IMAGE_PAGE_SEARCH_ITEM");
+  assert.equal(state.requests[0].item.kind, "image");
+  assert.equal(state.requests[0].item.payload.mimeType, "image/png");
+  assert.deepEqual(state.replacements, ["moz-extension://ravue/results.html"]);
+});
+
+test("the stable page does not intercept pasted text", () => {
+  const state = launchEnvironment({ mode: "upload" });
+  imageInput.launchUploadPage(state.environment);
+  let prevented = false;
+  state.handlers.get("paste")({
+    preventDefault() { prevented = true; },
+    clipboardData: {
+      files: [],
+      items: [{ kind: "string", type: "text/plain" }],
+    },
+  });
+  assert.equal(prevented, false);
+  assert.deepEqual(state.requests, []);
 });
 
 test("cancelling the stable page file picker creates no search", () => {

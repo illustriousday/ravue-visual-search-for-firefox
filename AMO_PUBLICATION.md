@@ -1,12 +1,12 @@
-# Ravue 2.1.7 — AMO Publication Material
+# Ravue 2.1.8 — AMO Publication Material
 
-Prepared on September 3, 2026 for an update of the existing Ravue listing from 2.1.6 to 2.1.7. Nothing in this document publishes or signs the add-on.
+Prepared on September 3, 2026 for an update of the existing Ravue listing from 2.1.7 to 2.1.8. Nothing in this document publishes or signs the add-on.
 
 ## Identity and scope
 
 - Name: Ravue — Visual Search for Firefox
 - Add-on ID: `{351e58ce-b7a8-4e88-b53f-d23acc464659}`
-- Version: 2.1.7
+- Version: 2.1.8
 - Manifest: V3, Firefox module event background
 - Minimum Firefox Desktop: 142.0
 - Android: not declared
@@ -18,9 +18,9 @@ Prepared on September 3, 2026 for an update of the existing Ravue listing from 2
 - License: All Rights Reserved
 - Repository: transparency and source-code review only; no public support or contribution channel
 
-Version 2.1.7 adds only a toolbar row that opens a stable Ravue image-input page, whole-page image drag and drop there, a file-picker button, the isolated local preparation required by those inputs, their localized messages, and their tests/documentation. It adds no permission, host, remote code, account, server, telemetry, advertisement, or background collection.
+Version 2.1.8 adds only direct image paste to the stable Ravue image-input page introduced in 2.1.7, plus the corresponding disclosure text, tests, and documentation. It adds no permission, host, remote code, account, server, telemetry, advertisement, or background collection.
 
-The accepted 2.1.6 content scripts, selector modules, result modules, storage modules, icons, and original `popup/popup.js` remain byte-for-byte identical. The new controller is `popup/image-input.js`; in the transient toolbar popup it only requests `upload.html`, while the stable page owns the file picker and drag listeners. The background authenticates each exact packaged sender and stages a validated URL or image payload for the existing same-tab result flow.
+The accepted 2.1.7 content scripts, background, selector modules, result modules, storage modules, icons, styles, file-picker path, and drag/drop path remain unchanged. The only functional edit is in `popup/image-input.js`: a `paste` listener extracts an actual image file from the user-generated event and passes it to the existing local-file submission function. Non-image paste is ignored. Ravue does not call the Clipboard API and does not request clipboard permission.
 
 ## Final artifacts
 
@@ -28,8 +28,8 @@ The unsigned XPI fingerprint below is reproducible from this source. The source 
 
 | Artifact | Files | Bytes | SHA-256 |
 | --- | ---: | ---: | --- |
-| `ravue-visual-search-v2.1.7.xpi` | 34 | 80,493 | `c6aac7c2f8842b6a83125e88d4e0860030e5ba3fc5482eaa5969c932c5cae7e4` |
-| `ravue-visual-search-v2.1.7-source.zip` | 74 | Recorded in the external delivery checksum | Recorded in the external delivery checksum |
+| `ravue-visual-search-v2.1.8.xpi` | 34 | 80,972 | `ce9ed493a3ebb36196b4cf18eb34652a6e3caa7a1a6563cbf36066ebf44656bf` |
+| `ravue-visual-search-v2.1.8-source.zip` | 74 | Recorded in the external delivery checksum | Recorded in the external delivery checksum |
 
 The XPI must be an unsigned local candidate until AMO signs it. AMO signing changes the distributed XPI hash. The source ZIP has `manifest.json` at its root and contains no XPI, older ZIP, executable dependency, or generated runtime.
 
@@ -50,19 +50,19 @@ The XPI must be an unsigned local candidate until AMO signs it. AMO signing chan
 
 ### Summary
 
-Search web images, image files from your computer, or any visible page area with Google Lens. Open Ravue's image page to drop or choose a file, or use its local area selector.
+Search web images, pasted or local image files, or any visible page area with Google Lens. Open Ravue's image page to paste, drop, or choose an image, or use its local area selector.
 
 ### Description
 
 Ravue makes visual search in Firefox simple, direct, and controlled by an explicit user action.
 
-Search a web image from its context menu, open Ravue's dedicated image page to drop or choose an image, or select any visible area of a page. Each search opens in one new tab and continues to Google Lens while the source page remains unchanged.
+Search a web image from its context menu, open Ravue's dedicated image page to paste, drop, or choose an image, or select any visible area of a page. Each search opens in one new tab and continues to Google Lens while the source page remains unchanged.
 
-#### Drop or choose an image
+#### Paste, drop, or choose an image
 
-Open the toolbar panel and choose **Add an image**. Ravue opens a normal, stable tab where you can drop an image anywhere or choose **Choose an image** to select a local file. Ravue supports JPEG, PNG, WebP, GIF, BMP, and AVIF files up to 32 MB.
+Open the toolbar panel and choose **Add an image**. Ravue opens a normal, stable tab where you can paste an image with `Ctrl+V` (`Command+V` on macOS), drop an image anywhere, or choose **Choose an image** to select a local file. Ravue supports JPEG, PNG, WebP, GIF, BMP, and AVIF files up to 32 MB.
 
-JPEG, PNG, and WebP are preserved without re-encoding when their dimensions and temporary payload size allow it. Inputs that require conversion are processed locally as a still JPEG, limited to 1200 pixels on the longest side. Choosing or dropping the image is the explicit command to send it to Google Lens; opening the toolbar panel or image page, or cancelling the picker, sends nothing. After a valid input, that same tab becomes Ravue's preparation screen and then Google Lens.
+JPEG, PNG, and WebP are preserved without re-encoding when their dimensions and temporary payload size allow it. Inputs that require conversion are processed locally as a still JPEG, limited to 1200 pixels on the longest side. Pasting, choosing, or dropping the image is the explicit command to send it to Google Lens; opening the toolbar panel or image page, copying without pasting, or cancelling the picker sends nothing. Non-image pasted content is ignored. After a valid input, that same tab becomes Ravue's preparation screen and then Google Lens.
 
 #### Search a complete web image
 
@@ -78,7 +78,7 @@ Suggestions use packaged pixel and document-boundary heuristics. They do not use
 
 For an eligible web image URL, Google receives that specific URL, including any query parameters. Recognizable local addresses and embedded credentials are excluded, but Ravue does not perform DNS verification or remove tokens from a URL. Do not search a private image or sensitive URL you do not want to share.
 
-For a chosen/dropped file or local fallback, Ravue locally prepares the image and passes it through the Google Images file input. For area selection, Firefox first captures the entire visible viewport locally before cropping; nothing is sent while the selection is adjusted. Only the chosen/dropped image or confirmed crop is used for the requested search. Pixels can contain personal information and are not automatically redacted.
+For a pasted/chosen/dropped image or local fallback, Ravue locally prepares the image and passes it through the Google Images file input. For area selection, Firefox first captures the entire visible viewport locally before cropping; nothing is sent while the selection is adjusted. Only the pasted/chosen/dropped image or confirmed crop is used for the requested search. Pixels can contain personal information and are not automatically redacted.
 
 Temporary payloads and operation state use Firefox session storage with a logical five-minute lifetime. Ravue has no intermediary server, advertising, or telemetry. Google processing, cookies, account state, history, and retention are governed by Firefox and Google's services. See the privacy policy for complete details.
 
@@ -96,41 +96,42 @@ Ravue is independent and is not affiliated with, sponsored by, or endorsed by Go
 
 ### Release notes
 
-Ravue 2.1.7 adds two optional image-input methods while preserving the accepted 2.1.6 search and selector behavior:
+Ravue 2.1.8 adds direct image paste while preserving the accepted 2.1.7 behavior:
 
-- Open a stable image-input page from the Ravue toolbar panel.
-- Drop an image anywhere on that page or choose a local image through its dedicated button.
-- Supports JPEG, PNG, WebP, GIF, BMP, and AVIF up to 32 MB.
-- Preserves eligible JPEG/PNG/WebP bytes; converts only when necessary.
-- Reuses the existing URL-priority route for dropped web images.
-- Adds localized progress, validation, and recovery messages.
-- Adds no permission, host, tracking, server, or remote code.
-- Keeps direct image search, area selection, right-click clear, keyboard handling, no-scroll behavior, and the single result-tab flow unchanged.
+- Paste an image directly on the existing **Add an image** page with `Ctrl+V` (`Command+V` on macOS).
+- Reuse the existing image validation, local preparation, limits, error handling, and single result-tab flow.
+- Ignore pasted text and other non-image clipboard content.
+- Read only the image supplied by a user-generated paste event; no Clipboard API or clipboard permission.
+- Add no permission, host, tracking, server, remote code, or background collection.
+- Keep file selection, drag/drop, direct image search, area selection, right-click clear, keyboard handling, and no-scroll behavior unchanged.
 
 ## Notes for Reviewers (concise private field)
 
 Copy only the block below into the private reviewer field.
 
 ```text
-RAVUE 2.1.7 — UPDATE FROM 2.1.6
+RAVUE 2.1.8 — UPDATE FROM 2.1.7
 
 IDENTITY
 Existing add-on ID: {351e58ce-b7a8-4e88-b53f-d23acc464659}
 Manifest V3; Firefox Desktop 142+; no Android declaration.
 
 SCOPE
-This update adds only (1) a toolbar row that opens a stable packaged image-input page, (2) whole-page image drag/drop there, and (3) a Choose an image button there. Firefox toolbar popups are transient, so file picking and drag handling deliberately occur in upload.html, not inside the popup. No permission, host, data category, remote code, server, account, telemetry, or advertising was added. Existing direct-image, selector, Google preparation, and result behavior is preserved. Established content/selector/result/storage modules, icons, and popup/popup.js match the accepted 2.1.6 source byte for byte. New UI logic is isolated in popup/image-input.js, upload.html, and ui/upload.css. The background addition accepts only messages from the exact packaged popup or image-page URL and stages a validated URL/image for the existing same-tab result flow.
+This update adds only direct image paste to the existing stable Add an image page. No permission, host, data category, remote code, server, account, telemetry, advertising, or background collection was added. Existing file selection, drag/drop, direct-image, selector, Google preparation, and result behavior is preserved. The functional code change is isolated in popup/image-input.js. Other edits are the manifest/build version, localized disclosure wording, documentation, and focused tests.
+
+IMPLEMENTATION
+The stable upload.html document listens for a user-generated paste event. It accepts the first non-empty image file exposed through clipboardData.files or a file entry in clipboardData.items, then sends that file through the same existing prepareFile() and submit() path used by the file picker. It prevents the default paste action only when an image file is accepted. Pasted text, HTML, and URLs are ignored. Ravue does not call navigator.clipboard or any Clipboard API and requests no clipboard permission.
 
 TEST
-1. Open the toolbar panel and choose “Add an image”. Verify one normal Ravue image-input tab opens. Drag a public, non-sensitive web image anywhere over that page; a full-page target appears. Drop it and verify that same tab becomes the preparation screen and then Lens.
-2. From the stable image-input page, choose “Choose an image” and select JPEG, PNG, WebP, GIF, BMP, or AVIF (<=32 MB). Canceling the picker sends nothing. Unsupported/oversized input shows an error, restores the button, and keeps the page open.
-3. Regression: right-click a web image and use “Search this image with Ravue”; verify no selector and no source-page scroll. Open “Select an area”; verify click suggestion, manual drag, move/resize, right-click clear, Visible page requiring Search, and keyboard controls.
+1. Copy a non-sensitive PNG or JPEG image. Open the toolbar panel, choose “Add an image”, and press Ctrl+V (Command+V on macOS). Verify that the same Ravue tab shows preparation and then Lens for the pasted image.
+2. Copy ordinary text or a URL and paste it on the image-input page. Verify that Ravue does not submit or navigate.
+3. Regression: on the same page, choose an image through the file picker and drag/drop an image. Verify both accepted 2.1.7 paths still work. Also verify direct context-menu image search and Select an area behavior.
 
 DATA FLOW
-Choosing or dropping is the deliberate single-use command. A dropped web-image URL uses the existing syntactically validated HTTPS/HTTP URL route; fragments are removed and query parameters preserved. Ravue does not fetch that URL. Local JPEG/PNG/WebP bytes are preserved when <=1200 px and within the temporary payload cap. Other/larger supported inputs are decoded locally into a still JPEG (quality .94, max side 1200, white background). The original local filename/path is not submitted. The payload then uses the existing storage.session -> results.html -> Google Images file-input handoff. Temporary records are logically valid for five minutes. No unrelated data is appended.
+Pasting an image is the deliberate single-use command. The pasted image follows the existing local-file path: JPEG/PNG/WebP bytes are preserved when <=1200 px and within the temporary payload cap; other/larger supported inputs are decoded locally into a still JPEG (quality .94, max side 1200, white background). The original local filename/path is not submitted. The payload then uses the existing storage.session -> results.html -> Google Images file-input handoff. Temporary records are logically valid for five minutes. No unrelated clipboard or page data is read or appended.
 
 CONSENT AND DISCLOSURE
-The image-input page and AMO listing state that the chosen/dropped image is sent to Google Lens. No data is sent by opening the toolbar panel or image page, hovering a drag, canceling the picker, or adjusting a crop. This is purpose-limited, user-initiated single-use transmission. Required manifest category remains websiteContent.
+The image-input page and AMO listing state that the pasted/chosen/dropped image is sent to Google Lens. No data is sent by opening the toolbar panel or image page, copying without pasting, hovering a drag, canceling the picker, or adjusting a crop. This is purpose-limited, user-initiated single-use transmission. Required manifest category remains websiteContent.
 
 SOURCE
 Readable, unminified source; no compilation, transpilation, code generation, or bundling. Answer No to the source-transformation question. tools/package.cjs only creates deterministic archives. No credentials are required. Google may show consent/login/CAPTCHA/rate limits; Ravue does not bypass them.
@@ -142,13 +143,13 @@ The final local report must be read together with [TEST_MATRIX.md](TEST_MATRIX.m
 
 ## Submission sequence
 
-1. Upload the final 2.1.7 XPI to the existing listing.
+1. Upload the final 2.1.8 XPI to the existing listing.
 2. Stop and inspect every AMO validator warning or error; do not alter the package merely to bypass the platform.
 3. For **Does this add-on require source code?**, select **No** because the runtime is already readable and not transformed. If Mozilla separately requests source, provide the exact matching source ZIP.
-4. Paste the concise reviewer block and 2.1.7 release notes.
+4. Paste the concise reviewer block and 2.1.8 release notes.
 5. Update the English summary, description, and complete privacy policy.
-6. Add or replace screenshots only with real 2.1.7 Firefox captures showing no personal information, including the stable image-input page if this feature is illustrated. Existing screenshots of unchanged selector/context-menu behavior may remain if they still match.
-7. After signing/publication, verify upgrade from signed 2.1.6, both new panel inputs, direct image search, and area selection. Keep the signed XPI separately because its hash differs from the unsigned candidate.
+6. Add or replace screenshots only with real 2.1.8 Firefox captures showing no personal information, including the stable image-input page if this feature is illustrated. Existing screenshots of unchanged selector/context-menu behavior may remain if they still match.
+7. After signing/publication, verify upgrade from signed 2.1.7, paste, file selection, drag/drop, direct image search, and area selection. Keep the signed XPI separately because its hash differs from the unsigned candidate.
 
 ## Reproduction
 

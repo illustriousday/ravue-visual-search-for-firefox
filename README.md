@@ -2,14 +2,14 @@
 
 Search web images, image files from your computer, or any visible page area with Google Lens in one new tab.
 
-**Source version: 2.1.7 · Manifest V3 · Firefox Desktop 142 or later.**
+**Source version: 2.1.8 · Manifest V3 · Firefox Desktop 142 or later.**
 
 > **Source code for review only:** this repository exists for transparency and source-code review. It is not a support or contribution channel. Bug reports, support requests, suggestions, feedback, pull requests, and contributions are not accepted.
 
 ## Features
 
 - Open a stable Ravue image-input page from the toolbar panel.
-- Drop an image anywhere on that page or choose a JPEG, PNG, WebP, GIF, BMP, or AVIF file from the computer.
+- Paste an image with `Ctrl+V` (`Command+V` on macOS), drop it anywhere on that page, or choose a JPEG, PNG, WebP, GIF, BMP, or AVIF file from the computer.
 - Search the clicked web image directly from the context menu.
 - Prefer a web image's specific public URL, avoiding a viewport-limited crop.
 - Open the established area selector from the panel, context menu, or keyboard shortcut.
@@ -21,18 +21,19 @@ Search web images, image files from your computer, or any visible page area with
 - Use light or dark appearance according to the operating-system preference.
 - No Ravue intermediary server, advertising, or telemetry.
 
-The accepted 2.1.6 direct-image, selector, preparation, and result flows are preserved in 2.1.7. The new file/drop input is isolated in `popup/image-input.js`, uses a stable extension page because Firefox toolbar popups close when they lose focus, and reuses the existing session-backed handoff.
+The accepted 2.1.7 file/drop, direct-image, selector, preparation, and result flows are preserved in 2.1.8. Pasted images are handled by the same isolated `popup/image-input.js` controller on the stable extension page and reuse its existing local preparation and session-backed handoff. No Clipboard API call or clipboard permission is used.
 
 ## How to use
 
-### Drop or choose an image
+### Paste, drop, or choose an image
 
-Open the Ravue toolbar panel and choose **Add an image**. A normal Ravue tab remains open while you either:
+Open the Ravue toolbar panel and choose **Add an image**. A normal Ravue tab remains open while you:
 
-1. drag one image file or a web-page image anywhere over that tab and drop it when the full-page target appears; or
-2. choose **Choose an image** and select a supported image file.
+1. paste an image from the clipboard with `Ctrl+V` (`Command+V` on macOS);
+2. drag one image file or a web-page image anywhere over that tab and drop it when the full-page target appears; or
+3. choose **Choose an image** and select a supported image file.
 
-Dropping or choosing the image is the explicit command to send that image to Google Lens. Merely opening the toolbar panel or image-input page, dragging without dropping, or opening and cancelling the file picker sends nothing. After a successful choice or drop, the same image-input tab becomes the preparation screen and then Google Lens.
+Pasting, dropping, or choosing the image is the explicit command to send that image to Google Lens. Merely opening the toolbar panel or image-input page, dragging without dropping, copying an image without pasting it, or opening and cancelling the file picker sends nothing. After a successful paste, choice, or drop, the same image-input tab becomes the preparation screen and then Google Lens. Pasted text and other non-image clipboard content are ignored.
 
 JPEG, PNG, and WebP files no larger than 1200 pixels on either side are kept in their existing encoded format when they fit the temporary payload limit. Larger inputs and GIF, BMP, or AVIF files are decoded locally and converted to a still JPEG at quality 0.94, with at most 1200 pixels on the longest side and a white transparency background. The source-file limit is 32 MB. Animation, transparency, metadata, or fine detail may be lost when conversion is required.
 
@@ -73,7 +74,7 @@ The selector works from the viewport capture taken when it opens. Close and reop
 
 ## Privacy
 
-For a direct web-image search or a dropped web image, Google receives the image's specific eligible URL. For a chosen/dropped local file, Google receives either its preserved JPEG/PNG/WebP bytes or a locally converted JPEG. The original filename is not used for submission. For area selection, Firefox first captures the **entire visible viewport before cropping**; that working image remains local, and only the confirmed crop is prepared for Google.
+For a direct web-image search or a dropped web image, Google receives the image's specific eligible URL. For a pasted, chosen, or dropped local image, Google receives either its preserved JPEG/PNG/WebP bytes or a locally converted JPEG. The original filename is not used for submission. For area selection, Firefox first captures the **entire visible viewport before cropping**; that working image remains local, and only the confirmed crop is prepared for Google.
 
 Temporary image data, URLs, operation identifiers, result-tab associations, phases, and expiry times use `storage.session`. Records have a logical five-minute lifetime and are removed when consumed, completed, closed, or cleaned after expiry. Ravue does not archive images in `storage.local`, `storage.sync`, or a developer-operated server.
 
@@ -92,7 +93,7 @@ Ravue uses Manifest V3 with a Firefox module event background. Android compatibi
 | `https://images.google.com/*` | Delivery of a pending local image/crop through Google's file input |
 | `https://lens.google.com/*` | Preparation-cover handling for a pending result tab |
 
-Version 2.1.7 adds no permission and requests no permanent access to all websites. Internal/protected pages and frame, CORS, or CSP restrictions may prevent some existing page-based operations. File choice from the dedicated Ravue page does not require access to the current web page.
+Version 2.1.8 adds no permission and requests no permanent access to all websites. Its paste handler receives only the image exposed by a user-generated paste event on the dedicated Ravue page. Internal/protected pages and frame, CORS, or CSP restrictions may prevent some existing page-based operations. File choice and image paste from the dedicated Ravue page do not require access to the current web page.
 
 Search availability depends on Google. The initial Google Images document-load wait has no local timeout; if the page never finishes loading, the preparation screen may remain until the tab is closed. Later input, post-attachment, and Lens-cover stages have separate bounds. Ravue does not bypass CAPTCHA, authentication, consent, rate limits, or service restrictions.
 
@@ -114,7 +115,7 @@ Build deterministic archives without transforming source files:
 node tools/package.cjs ../dist
 ```
 
-The command creates the 2.1.7 XPI and matching source ZIP in `../dist`. See [TEST_MATRIX.md](TEST_MATRIX.md) for the scope and limits of validation.
+The command creates the 2.1.8 XPI and matching source ZIP in `../dist`. See [TEST_MATRIX.md](TEST_MATRIX.md) for the scope and limits of validation.
 
 ## Independence and rights
 

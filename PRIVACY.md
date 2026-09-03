@@ -1,18 +1,18 @@
 # Ravue Privacy Policy
 
-Last updated: September 3, 2026. Applies to Ravue 2.1.7.
+Last updated: September 3, 2026. Applies to Ravue 2.1.8.
 
 ## Summary
 
-Ravue provides user-initiated visual search with Google Lens. You can search a complete image from a web page, open Ravue's stable image-input page to choose or drop an image, or confirm a selected visible area. Ravue has no intermediary server, account system, advertising, or telemetry.
+Ravue provides user-initiated visual search with Google Lens. You can search a complete image from a web page, open Ravue's stable image-input page to paste, choose, or drop an image, or confirm a selected visible area. Ravue has no intermediary server, account system, advertising, or telemetry.
 
-Opening the toolbar panel or image-input page, opening and cancelling the file picker, dragging without dropping, or adjusting an area selection does not transmit an image. Transmission starts only as the direct consequence of the clearly labelled command you complete: choosing a file, dropping an image, choosing **Search this image with Ravue**, or confirming an area with **Search**.
+Opening the toolbar panel or image-input page, copying without pasting, opening and cancelling the file picker, dragging without dropping, or adjusting an area selection does not transmit an image. Transmission starts only as the direct consequence of the command you complete: pasting an image on Ravue's image-input page, choosing a file, dropping an image, choosing **Search this image with Ravue**, or confirming an area with **Search**.
 
 Google receives either an eligible image URL or image pixels prepared for the requested search. Images and URLs may contain personal or sensitive information. Review what you choose before starting a search.
 
-## Chosen or dropped image files
+## Pasted, chosen, or dropped image files
 
-The dedicated Ravue image-input page accepts JPEG, PNG, WebP, GIF, BMP, and AVIF image files up to 32 MB. Ravue reads and decodes the chosen or dropped file locally.
+The dedicated Ravue image-input page accepts pasted, chosen, or dropped JPEG, PNG, WebP, GIF, BMP, and AVIF image files up to 32 MB. Ravue reads and decodes that image locally.
 
 - An eligible JPEG, PNG, or WebP no larger than 1200 pixels on either side is kept in its existing encoded format when it also fits the temporary 8 MiB data-URL limit.
 - Larger inputs and GIF, BMP, or AVIF inputs are rendered locally to a still JPEG at quality 0.94, with no more than 1200 pixels on the longest side.
@@ -21,7 +21,7 @@ The dedicated Ravue image-input page accepts JPEG, PNG, WebP, GIF, BMP, and AVIF
 
 The resulting image is placed in temporary session storage and delivered to the file input on Google Images, which starts the Lens search. No copy is sent to a Ravue server.
 
-If several files are dropped together, Ravue uses the first supported image. Unsupported content is rejected locally.
+If several files are dropped or present in one clipboard event, Ravue uses the first supported image. Unsupported pasted content is ignored or rejected locally and is not sent.
 
 ## Dropped web images
 
@@ -63,7 +63,7 @@ Ravue does not archive images in `storage.local`, `storage.sync`, a proprietary 
 
 ## Information not deliberately added
 
-Ravue does not send the page URL as a separate field and does not deliberately append browsing history, cookies, advertising identifiers, usage metrics, crash reports, or the original local filename to the search payload. However, a specific image URL may itself contain a page address, token, or identifier in its query parameters, and selected or chosen pixels may contain any visible information.
+Ravue does not send the page URL as a separate field and does not deliberately append browsing history, cookies, advertising identifiers, usage metrics, crash reports, or the original local filename to the search payload. However, a specific image URL may itself contain a page address, token, or identifier in its query parameters, and selected, pasted, or chosen pixels may contain any visible information.
 
 The absence of a Ravue server does not mean that no data leaves the device. Google transmission is the requested function. Normal requests to Google can involve the IP address, request headers, existing Google cookies, account state, and browser history according to Firefox and Google's services. Ravue does not control those layers and does not promise anonymity.
 
@@ -76,9 +76,9 @@ The absence of a Ravue server does not mean that no data leaves the device. Goog
 - `https://images.google.com/*`: delivery of a pending image or crop to Google's file input.
 - `https://lens.google.com/*`: management of Ravue's preparation cover for a pending result tab.
 
-Version 2.1.7 adds no permission and requests no permanent access to all websites. Scripts on Google Images and Lens first check whether their exact tab has a pending Ravue operation. Ravue does not inspect Lens result content to evaluate its meaning or quality.
+Version 2.1.8 adds no permission, including no clipboard permission, and requests no permanent access to all websites. Ravue does not call the Clipboard API; it receives an image only from a user-generated paste event while the dedicated image-input page is open. Scripts on Google Images and Lens first check whether their exact tab has a pending Ravue operation. Ravue does not inspect Lens result content to evaluate its meaning or quality.
 
-The manifest declares required `websiteContent` transmission for visual search. The chosen-file and dropped-image features are single-use, purpose-limited, and initiated only by an explicit command on clearly labelled Ravue controls. The AMO listing and in-product image-input page state that the chosen or dropped image is sent to Google Lens.
+The manifest declares required `websiteContent` transmission for visual search. Pasting, choosing, and dropping an image are single-use, purpose-limited actions initiated by the user on Ravue's dedicated image-input page. The AMO listing and in-product image-input page state that the pasted, chosen, or dropped image is sent to Google Lens.
 
 ## Google and independence
 

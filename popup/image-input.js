@@ -226,6 +226,25 @@
     return { kind: "url", sourceUrl };
   }
 
+  function pastedImageFile(clipboardData) {
+    const files = Array.from(clipboardData?.files || []);
+    for (const item of Array.from(clipboardData?.items || [])) {
+      if (item?.kind !== "file") continue;
+      try {
+        const file = item.getAsFile?.();
+        if (file) files.push(file);
+      } catch (_) {
+        // Ignore an unavailable clipboard item and leave normal paste behavior intact.
+      }
+    }
+    return files.find((candidate) => (
+      Number.isFinite(candidate?.size) && candidate.size > 0 &&
+      (normalizedMimeType(candidate) || (
+        typeof candidate.type === "string" && candidate.type.toLowerCase().startsWith("image/")
+      ))
+    )) || null;
+  }
+
   function errorMessage(browserApi, error) {
     switch (error?.code) {
       case "size":
@@ -353,6 +372,14 @@
       if (file) void submit({ kind: "file", file });
     });
 
+    documentObject.addEventListener("paste", (event) => {
+      if (busy) return;
+      const file = pastedImageFile(event.clipboardData);
+      if (!file) return;
+      event.preventDefault();
+      void submit({ kind: "file", file });
+    });
+
     documentObject.addEventListener("dragenter", (event) => {
       event.preventDefault();
       dragDepth += 1;
@@ -405,6 +432,7 @@
     firstLine,
     htmlImageSource,
     droppedItem,
+    pastedImageFile,
     errorMessage,
     localize,
     showVersion,
@@ -420,4 +448,3 @@
     launch(scope);
   }
 })(typeof globalThis === "undefined" ? this : globalThis);
-
