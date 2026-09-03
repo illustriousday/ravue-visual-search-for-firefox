@@ -138,8 +138,9 @@ test("mantém busca direta, seleção e falha segura como fluxos MV3 independent
         return "data:image/png;base64,c2NyZWVuc2hvdA==";
       },
       async create(details) {
-        createdTabs.push(details);
-        return { id: nextTabId++ };
+        const created = { ...details, id: nextTabId++ };
+        createdTabs.push(created);
+        return { id: created.id };
       },
       async update(tabId, details) {
         updatedTabs.push({ tabId, details });
@@ -503,6 +504,102 @@ test("mantém busca direta, seleção e falha segura como fluxos MV3 independent
     { url: "https://example.com/fake-popup" },
   );
   assert.deepEqual(rejectedPopup, { ok: false });
+
+  const screenshotsBeforeImagePage = screenshotCount;
+  const scriptsBeforeImagePage = executedScripts.length;
+  const openedImagePage = await runtimeListeners[0](
+    { type: "RV_POPUP_OPEN_IMAGE_PAGE" },
+    { url: "moz-extension://ravue/popup/popup.html" },
+  );
+  assert.deepEqual(openedImagePage, { ok: true });
+  const urlInputTab = createdTabs.at(-1);
+  assert.equal(urlInputTab.url, "moz-extension://ravue/upload.html");
+  assert.equal(urlInputTab.openerTabId, sourceTab.id);
+  assert.equal(urlInputTab.active, true);
+  assert.equal(screenshotCount, screenshotsBeforeImagePage);
+  assert.equal(executedScripts.length, scriptsBeforeImagePage);
+
+  const createdBeforeUrlStage = createdTabs.length;
+  const imagePageUrlResult = await runtimeListeners[0](
+    {
+      type: "RV_IMAGE_PAGE_SEARCH_ITEM",
+      item: { kind: "url", sourceUrl: "https://cdn.example.com/original.webp?full=1#ignored" },
+    },
+    { url: "moz-extension://ravue/upload.html", tab: { id: urlInputTab.id, windowId: 7 } },
+  );
+  assert.deepEqual(imagePageUrlResult, {
+    ok: true,
+    resultUrl: "moz-extension://ravue/results.html",
+  });
+  assert.equal(createdTabs.length, createdBeforeUrlStage);
+  const imagePageUrlStage = await runtimeListeners[0](
+    { type: "RV_START_GOOGLE_STAGE" },
+    { url: "moz-extension://ravue/results.html", tab: { id: urlInputTab.id, windowId: 7 } },
+  );
+  assert.deepEqual(imagePageUrlStage, { ok: true });
+  const popupLensUrl = new URL(updatedTabs.at(-1).details.url);
+  assert.equal(popupLensUrl.pathname, "/uploadbyurl");
+  assert.equal(popupLensUrl.searchParams.get("url"), "https://cdn.example.com/original.webp?full=1");
+
+  await runtimeListeners[0](
+    { type: "RV_POPUP_OPEN_IMAGE_PAGE" },
+    { url: "moz-extension://ravue/popup/popup.html" },
+  );
+  const fileInputTab = createdTabs.at(-1);
+  const imagePageFileResult = await runtimeListeners[0](
+    {
+      type: "RV_IMAGE_PAGE_SEARCH_ITEM",
+      item: {
+        kind: "image",
+        payload: {
+          dataUrl: "data:image/png;base64,aW1hZ2U=",
+          width: 288,
+          height: 412,
+          mimeType: "image/png",
+        },
+      },
+    },
+    { url: "moz-extension://ravue/upload.html", tab: { id: fileInputTab.id, windowId: 7 } },
+  );
+  assert.deepEqual(imagePageFileResult, {
+    ok: true,
+    resultUrl: "moz-extension://ravue/results.html",
+  });
+  const imagePageFileStage = await runtimeListeners[0](
+    { type: "RV_START_GOOGLE_STAGE" },
+    { url: "moz-extension://ravue/results.html", tab: { id: fileInputTab.id, windowId: 7 } },
+  );
+  assert.deepEqual(imagePageFileStage, { ok: true });
+  const popupFileReady = await runtimeListeners[0](
+    { type: "RV_GOOGLE_UPLOAD_READY" },
+    { url: "https://images.google.com/", tab: { id: fileInputTab.id, windowId: 7 } },
+  );
+  assert.deepEqual(popupFileReady, {
+    ok: true,
+    pending: true,
+    payload: {
+      dataUrl: "data:image/png;base64,aW1hZ2U=",
+      width: 288,
+      height: 412,
+      mimeType: "image/png",
+    },
+  });
+
+  const rejectedImagePageOpen = await runtimeListeners[0](
+    { type: "RV_POPUP_OPEN_IMAGE_PAGE" },
+    { url: "https://example.com/fake-popup" },
+  );
+  assert.deepEqual(rejectedImagePageOpen, { ok: false });
+  const rejectedImagePageItem = await runtimeListeners[0](
+    { type: "RV_IMAGE_PAGE_SEARCH_ITEM", item: { kind: "url", sourceUrl: "https://example.com/a.png" } },
+    { url: "https://example.com/fake-page", tab: { id: 999, windowId: 7 } },
+  );
+  assert.deepEqual(rejectedImagePageItem, { ok: false });
+  const invalidImagePageItem = await runtimeListeners[0](
+    { type: "RV_IMAGE_PAGE_SEARCH_ITEM", item: { kind: "image", payload: { dataUrl: "bad" } } },
+    { url: "moz-extension://ravue/upload.html", tab: { id: fileInputTab.id, windowId: 7 } },
+  );
+  assert.equal(invalidImagePageItem.ok, false);
 
   sent.length = 0;
   const screenshotsBeforeShortcut = screenshotCount;

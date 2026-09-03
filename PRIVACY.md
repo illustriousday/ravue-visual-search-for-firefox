@@ -1,68 +1,87 @@
 # Ravue Privacy Policy
 
-Last updated: August 31, 2026. Applies to the final Ravue 2.1.6 release. The current repackaging updates documentation only; all runtime files remain identical to those in the version approved by the maintainer.
+Last updated: September 3, 2026. Applies to Ravue 2.1.7.
 
 ## Summary
 
-Ravue lets you search an image or a selected area with Google Lens. It does not operate an intermediary server, its own account system, advertising, or telemetry. Google receives either the image’s specific URL or the pixels prepared for the search. Images and URLs may contain personal information.
+Ravue provides user-initiated visual search with Google Lens. You can search a complete image from a web page, open Ravue's stable image-input page to choose or drop an image, or confirm a selected visible area. Ravue has no intermediary server, account system, advertising, or telemetry.
 
-Opening the panel only displays information and controls. The **Select an area** button starts a local capture; choosing **Search this image with Ravue** from the context menu starts the search directly.
+Opening the toolbar panel or image-input page, opening and cancelling the file picker, dragging without dropping, or adjusting an area selection does not transmit an image. Transmission starts only as the direct consequence of the clearly labelled command you complete: choosing a file, dropping an image, choosing **Search this image with Ravue**, or confirming an area with **Search**.
 
-## Direct image search
+Google receives either an eligible image URL or image pixels prepared for the requested search. Images and URLs may contain personal or sensitive information. Review what you choose before starting a search.
 
-Ravue prioritizes the image URL provided by Firefox. It accepts HTTP or HTTPS, rejects embedded usernames/passwords, and removes the fragment (`#...`). Query parameters (`?...`) are preserved because they may be required to locate the image.
+## Chosen or dropped image files
 
-This revision excludes recognizable local addresses from the URL path, such as localhost, intranet hostnames without a domain, known local domains, and recognized local/reserved IP ranges. When possible, Ravue uses the pixel-based paths described below instead. If no permitted local alternative is available, the operation fails and can be replaced with a manual area selection.
+The dedicated Ravue image-input page accepts JPEG, PNG, WebP, GIF, BMP, and AVIF image files up to 32 MB. Ravue reads and decodes the chosen or dropped file locally.
 
-Validation remains syntactic: Ravue does not perform DNS lookups, test public accessibility, or inspect every redirect. A seemingly public domain may point to a private origin. Tokens, identifiers, or personal data contained in query parameters are not removed automatically. Do not use the direct path for an image or URL that you do not want to share with Google.
+- An eligible JPEG, PNG, or WebP no larger than 1200 pixels on either side is kept in its existing encoded format when it also fits the temporary 8 MiB data-URL limit.
+- Larger inputs and GIF, BMP, or AVIF inputs are rendered locally to a still JPEG at quality 0.94, with no more than 1200 pixels on the longest side.
+- The conversion uses a white background. Transparency, animation, metadata, color-profile behavior, or fine detail may be lost when conversion is required.
+- The original local filename and local filesystem path are not used for submission. The temporary file presented to Google has a generic Ravue filename.
 
-A new tab displays the preparation screen and navigates to `https://lens.google.com/uploadbyurl`, including the image’s specific URL. Google then attempts to retrieve the resource from that origin. Ravue does not resample the file on this path, but it does not control how Google retrieves, processes, or stores it.
+The resulting image is placed in temporary session storage and delivered to the file input on Google Images, which starts the Lens search. No copy is sent to a Ravue server.
 
-If no eligible URL is initially available, Ravue attempts to read the decoded pixels of the full image in the top-level document. If that read is blocked, it may ask Firefox to capture the rendered image rectangle. Ravue does not scroll the page to perform these operations. These fallback paths generate a JPEG at quality 0.94, with a maximum dimension of 1200 pixels on the longest side. They may lose transparency, animation, detail, or other characteristics of the original file.
+If several files are dropped together, Ravue uses the first supported image. Unsupported content is rejected locally.
 
-A Google-side failure after a URL has already been submitted does not automatically trigger a new capture. The user can start a new search with the area selector.
+## Dropped web images
+
+When a web-page image is dragged into the image-input page, Firefox may provide an image file or an image URL. A provided file follows the local-file process above. A provided URL follows the URL-priority process below.
+
+Ravue does not fetch a dropped remote URL itself. If the address is eligible, Google receives the address and attempts to retrieve the image from its source. Merely dragging over the image-input page does not send the URL; dropping is the explicit search command.
+
+## Direct web-image and URL-priority search
+
+For **Search this image with Ravue**, and for a dropped web image represented by an address, Ravue considers the specific URL supplied by Firefox. It accepts HTTP or HTTPS, rejects embedded usernames/passwords, removes the fragment (`#...`), and preserves query parameters (`?...`) because they may be required to locate the image.
+
+Recognizable local/internal addresses are excluded from URL delivery, including localhost, common local domains, intranet hostnames without a domain, and recognized private/reserved IP ranges. Validation is syntactic: Ravue does not perform DNS lookups, prove public accessibility, inspect every redirect, or remove identifiers and secret tokens from query parameters. A seemingly public hostname may still resolve privately. Do not use this route for an image or URL you do not want to share with Google.
+
+The result tab navigates to `https://lens.google.com/uploadbyurl` with the specific eligible image URL. Ravue does not resize or re-encode the image on this route. Google may be unable or unauthorized to retrieve temporary, authenticated, origin-restricted, or otherwise inaccessible resources.
+
+When the context-menu command has no eligible URL, Ravue may attempt the complete decoded image pixels in the top-level document and then, when Firefox permits it, a capture of the rendered image rectangle. Ravue does not scroll the page. These fallback routes create a JPEG at quality 0.94 and at most 1200 pixels on the longest side. They may lose transparency, animation, metadata, or detail. An inaccessible frame without an eligible URL fails rather than capturing unrelated pixels.
+
+A Google-side failure after an eligible URL has been submitted does not automatically trigger a new pixel capture or a second submission.
 
 ## Area selection
 
-When the selector is opened, Firefox captures the entire visible area of the active tab: the viewport, not the full scrollable page and not the browser chrome. This working image may include text, photographs, and visible form content, including personal data. There is no automatic detection or hiding of sensitive information.
+When the selector opens, Firefox captures the **entire visible area of the active tab before cropping**: the viewport, not the full scrollable page and not the browser chrome. The working PNG can include text, photographs, visible form content, and other personal information. Ravue does not automatically detect, blur, or redact sensitive content.
 
-The working PNG and a reduced copy used for analysis, limited to 960 pixels on the longest side, remain in local memory during selection. Visual analysis is performed locally using pixel and document-boundary heuristics; it does not use OCR, a remote artificial intelligence service, or network transmission to suggest the crop.
+The working PNG and a local analysis copy, limited to 960 pixels on the longest side, remain in local memory while the selector is open. Visual analysis is performed locally through packaged pixel and document-boundary heuristics. It does not use OCR, a remote AI service, downloaded models, or network transmission.
 
-Single-click, drag, move, resize, and right-click-to-clear actions only adjust the selection. When **Search** is activated, the crop is converted locally to a JPEG with a maximum dimension of 1200 pixels on the longest side. Only that JPEG is delivered to the Google Images file input, whose code starts the search in Lens. If **Visible page** is selected and then confirmed with **Search**, the entire selected viewport is included in the JPEG. The intermediate PNG is not uploaded as a file.
+Clicking, dragging, moving, resizing, resetting, choosing **Visible page**, and right-clicking to clear only adjust the selection. **Visible page** selects the full viewport but does not submit it. When **Search** is activated, only the confirmed selected region is converted locally to a JPEG at quality 0.94 with at most 1200 pixels on the longest side, then delivered through the Google Images file input. The full intermediate PNG is not uploaded as a file unless the user explicitly selects and confirms the complete visible viewport.
 
-Cancel, Close, or Esc before submission closes the selector. Enter or Space on a button activates that button; Enter while the selection is focused confirms the search. Confirmation with Enter is ignored while text is being composed through an IME.
+Cancel, Close, or Esc before confirmation closes the selector without submitting the image.
 
-## Memory and retention
+## Temporary memory and retention
 
-The Manifest V3 background process may be suspended. To pass data between steps, Ravue temporarily stores the final JPEG or image URL, random operation identifiers, the association with the result tab, the current phase, and the expiration time in `browser.storage.session`.
+Ravue's Manifest V3 event background can be suspended between steps. The requested search therefore uses `browser.storage.session` to hold only the temporary final image payload or eligible URL, a random operation identifier, its result-tab association, the processing phase, and an expiry time.
 
-Records become invalid after five minutes. The JPEG is removed when consumed; an in-memory lock prevents simultaneous messages from receiving two copies of the same record. Associations are cleared when the flow completes or ends, or when an access or cleanup operation encounters an expired record.
+Records become logically invalid after five minutes. Image payloads are removed when consumed. Associations are cleared when the flow completes, the result tab closes, or expired records are encountered during cleanup. An in-memory single-consumer guard prevents simultaneous messages in the same background instance from receiving duplicate copies.
 
-There is no promise of physical deletion at exactly the five-minute mark: validity and removal are separate mechanisms. Ending the browser session clears this session storage area. The selector’s working capture does not use the same timer and remains available for as long as the selector needs it.
+Logical expiry and physical removal are separate operations, so removal at the exact millisecond of expiry is not promised. Firefox clears session storage when the browser session ends. The selector's working screenshot has a separate in-memory lifetime and remains only while the selector needs it.
 
-The implementation does not use `storage.local`, `storage.sync`, a proprietary database, or a Ravue server to archive images. It does not guarantee forensic erasure from memory. Normal tab history, cache, and data retained by Google follow the behavior of the browser and the external service.
+Ravue does not archive images in `storage.local`, `storage.sync`, a proprietary database, or a developer-operated server. It does not promise forensic erasure from browser memory. Normal tab history, cache, and data retained by Google follow browser and service behavior.
 
-## Information not added to the search
+## Information not deliberately added
 
-Ravue does not deliberately add browsing history, cookies, advertising identifiers, usage metrics, or crash reports to the payload. Ravue does not send the page URL as a separate search field. However, an image URL may itself contain identifiers or even a page address in its query parameters, and selected pixels may contain any information visible on screen.
+Ravue does not send the page URL as a separate field and does not deliberately append browsing history, cookies, advertising identifiers, usage metrics, crash reports, or the original local filename to the search payload. However, a specific image URL may itself contain a page address, token, or identifier in its query parameters, and selected or chosen pixels may contain any visible information.
 
-The absence of a Ravue server does not mean that no data leaves the device. Transmission to Google is part of the requested functionality. Normal requests to Google may involve the IP address, headers, existing cookies, and account state according to the browser and the service. Ravue does not control this layer and does not promise anonymity.
+The absence of a Ravue server does not mean that no data leaves the device. Google transmission is the requested function. Normal requests to Google can involve the IP address, request headers, existing Google cookies, account state, and browser history according to Firefox and Google's services. Ravue does not control those layers and does not promise anonymity.
 
 ## Permissions and sites
 
-- `activeTab`: allows temporary access to the tab activated by the user.
-- `menus`: creates context-menu commands and identifies the clicked element.
-- `scripting`: injects local helpers and the selection interface.
-- `storage`: allows temporary transfer of data and state through `storage.session`.
-- `https://images.google.com/*`: allows Ravue to locate the file-search control and deliver the JPEG only when there is a pending operation for that tab.
-- `https://lens.google.com/*`: allows Ravue to manage the local preparation overlay for a pending operation.
+- `activeTab`: temporary access to the active tab after an explicit user action.
+- `menus`: context-menu commands and identification of the clicked image.
+- `scripting`: injection of packaged helpers and the area selector.
+- `storage`: temporary transfer through `storage.session`.
+- `https://images.google.com/*`: delivery of a pending image or crop to Google's file input.
+- `https://lens.google.com/*`: management of Ravue's preparation cover for a pending result tab.
 
-Permanent access to all websites is not requested. Scripts running on Google Images/Lens hosts check for pending state before creating the preparation overlay or interacting with the upload control. The Lens script does not inspect result content or certify that the search succeeded. On the Lens page, the preparation overlay has a waiting limit. This limit does not apply to the initial wait for Google Images to finish loading: if that load never completes, the preparation screen may remain visible until the user closes the tab.
+Version 2.1.7 adds no permission and requests no permanent access to all websites. Scripts on Google Images and Lens first check whether their exact tab has a pending Ravue operation. Ravue does not inspect Lens result content to evaluate its meaning or quality.
 
-The required category declared in the manifest is `websiteContent`, which is necessary for visual search. The extension is intended for Firefox Desktop 142 or later.
+The manifest declares required `websiteContent` transmission for visual search. The chosen-file and dropped-image features are single-use, purpose-limited, and initiated only by an explicit command on clearly labelled Ravue controls. The AMO listing and in-product image-input page state that the chosen or dropped image is sent to Google Lens.
 
 ## Google and independence
 
-Processing by Google is subject to the [Google Privacy Policy](https://policies.google.com/privacy) and the [Google Terms of Service](https://policies.google.com/terms). Ravue has not audited the service’s internal systems.
+Google's handling is subject to the [Google Privacy Policy](https://policies.google.com/privacy) and [Google Terms of Service](https://policies.google.com/terms). Google may show consent, authentication, CAPTCHA, rate limits, or other service controls. Ravue does not bypass them.
 
-Ravue is independent and is not affiliated with or endorsed by Google or Mozilla. The [source code repository](https://github.com/illustriousday/ravue-visual-search-for-firefox) is provided exclusively for reference; it is not a support or contribution channel.
+Ravue is independent and is not affiliated with, sponsored by, or endorsed by Google or Mozilla. The [source-code repository](https://github.com/illustriousday/ravue-visual-search-for-firefox) is maintained exclusively for transparency and review, not for support or contributions.

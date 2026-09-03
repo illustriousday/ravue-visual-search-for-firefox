@@ -1,33 +1,50 @@
 # Ravue Changes
 
-## 2.1.6 — final frozen release
+## 2.1.7 — stable image input
 
-The maintainer approved the baseline after testing the scenarios that had failed in the previous review. On August 31, 2026, the maintainer authorized repackaging this same version solely to correct README.md, PRIVACY.md, CHANGELOG.md, TEST_MATRIX.md, and AMO_PUBLICATION.md. Runtime files, the manifest, interface, tests, and tools were not changed; the previous packages have been preserved. The hashes of the new ZIP/XPI files differ because of the documentation changes.
+Version 2.1.7 adds two user-initiated ways to search an image without changing the accepted 2.1.6 page-image, area-selection, preparation, or result flows.
 
-Before this documentation-only repackaging, the baseline already contained the fixes listed below. It is not byte-for-byte identical to the original 2.1.6 candidate or to 2.1.5; the initial upload-wait function had been restored exactly to the 2.1.5 behavior.
+### Added
 
-- Fixes Enter handling in the selector: the focused button keeps its own action, preventing unintended searches when cancelling, resetting, closing, or selecting the visible page.
-- Prevents unintended confirmation during IME text composition.
-- Restores waiting for Google Images to finish loading before manipulating the upload controls, without starting early on DOMContentLoaded and without the additional 30-second timeout that had been introduced at this stage. The initial wait has no local timeout; if load never occurs, the preparation screen may remain visible.
-- Keeps the later-stage handling: up to 12 seconds to wait for the file input when necessary, 20 seconds after attaching the file, and an independent 30-second limit for the overlay on the Lens page.
-- Prevents duplicate consumption of a JPEG by simultaneous calls within the same background instance.
-- Excludes recognizable local/internal addresses from the URL path while preserving the existing local fallback paths.
-- Improves two light-theme text colors without changing the panel layout.
-- Preserves the implementation tests and adds regression coverage for the restored wait behavior. The recorded validation contains 179 passing local tests; this is not equivalent to exhaustive Firefox testing or AMO approval.
-- In the authorized documentation-only repackaging, aligns the five documents with the final behavior and consolidates publication text in AMO_PUBLICATION.md. No executable fix was added at this stage.
+- A new **Add an image** row in the toolbar panel opens a stable Ravue image-input page.
+- The complete image-input page is a drop target while an image is being dragged over it.
+- A visible **Choose an image** button on that page opens the operating-system file picker without losing the receiving document.
+- After a valid choice or drop, that same tab becomes the existing preparation screen and then Google Lens.
+- JPEG, PNG, WebP, GIF, BMP, and AVIF inputs are accepted up to 32 MB.
+- Eligible JPEG, PNG, and WebP files at or below 1200 pixels are preserved without re-encoding when they fit the temporary payload limit.
+- Inputs that need conversion are decoded locally and rendered as a still JPEG at quality 0.94, with at most 1200 pixels on the longest side and a white background.
+- Web images dropped as public HTTP(S) addresses reuse the existing URL-priority Lens route.
+- Errors remain on the image-input page, restore its control, and do not leave that page when preparation fails.
+- English and Brazilian Portuguese messages cover every new control, progress state, and error.
+- Focused unit and native-codec tests cover file types, preserved bytes, local conversion, resource cleanup, drop representations, the transient-panel boundary, stable-page behavior, failure recovery, real PNG pass-through, and real oversized-image conversion. Existing integration assertions also cover both new background routes.
 
-Permissions, ID, version, submission methods, smart-selection heuristics, drag behavior, right-click behavior, absence of automatic scrolling, and use of the same result tab were preserved. URL eligibility remains syntactic; parameters required to locate the resource are preserved.
+### Preserved from 2.1.6
 
-## Public update 1.4.1 → 2.1.6
+- The toolbar's **Select an area** behavior and its original `popup.js` controller.
+- Direct context-menu image search, including URL priority and pixel/capture fallbacks.
+- Empty-start selector, smart click suggestion, manual drag, move, resize, right-click clear, keyboard handling, and Visible page confirmation.
+- No automatic scrolling of the source page.
+- The preparation screen and Lens result using the same new tab.
+- Existing Google Images load, input, post-attachment, Lens-cover, expiry, and cleanup behavior.
+- Add-on ID, Manifest V3 architecture, minimum Firefox version, permissions, hosts, data declaration, icons, and automatic UI localization.
 
-- Migration from Manifest V2 to Manifest V3 on Firefox Desktop, with minimum version 142.
-- Module-based event background and temporary state through storage.session.
-- Extension toolbar panel with introduction and controls.
-- Local click-based selection suggestions and manual drag selection.
-- Right-click to clear a selection without restarting the selector.
-- Direct search prioritizing the image's specific URL; pixel/capture fallback paths when no eligible URL is available.
-- JPEG submission through the Google Images file input, with preparation and results in the same new tab.
-- New scripting, storage, and images.google.com permissions compared with 1.4.1; contextMenus becomes menus. There is no permanent access to all websites.
-- No Android compatibility is declared.
+All established content scripts, selector modules, result modules, storage modules, icons, `popup/popup.js`, and existing tests outside the explicit 2.1.7 test additions remain byte-for-byte identical to the accepted 2.1.6 source. Documentation is now maintained in English as the source default; the runtime interface continues to follow Firefox's English or Brazilian Portuguese locale.
 
-The update does not require publishing the intermediate internal versions. Availability of the version number in the AMO listing and final validation must be checked before submission. The available historical comparison is against the local 1.4.1 files, not against a freshly downloaded signed XPI.
+## 2.1.6 — stable base
+
+- Completed the public Manifest V3 transition for Firefox Desktop 142 or later.
+- Added the toolbar panel, local click-to-suggest selection, right-click clearing, and session-backed handoff.
+- Prioritized the image's specific eligible URL for direct image searches.
+- Preserved pixel and rendered-rectangle fallbacks without scrolling the source page.
+- Kept preparation and results in one new tab.
+- Corrected keyboard confirmation, pending-state cleanup, duplicate payload consumption, recognizable local-address exclusion, and light-theme contrast.
+- Restored the accepted Google Images initial-load behavior: wait for document completion or `load`, without an added local timeout at that first stage.
+
+## Public transition 1.4.1 → 2.1.6
+
+- Migrated from Manifest V2 to Manifest V3.
+- Moved transient handoff state to `storage.session`.
+- Added `scripting`, `storage`, and `images.google.com` access required by the new architecture; changed `contextMenus` to `menus`.
+- Did not request permanent all-sites access and did not declare Android compatibility.
+
+Intermediate internal version numbers were not required to be published.

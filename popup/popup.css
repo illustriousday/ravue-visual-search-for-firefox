@@ -137,6 +137,59 @@ h1 { margin: 0; font-size: 21px; line-height: 1.16; letter-spacing: -.55px; }
 .action-copy small { color: rgba(7, 17, 28, .7); font-size: 10px; line-height: 1.25; }
 .action-arrow { font-size: 25px; font-weight: 500; line-height: 1; }
 
+.image-input { margin-top: 9px; }
+
+.file-action {
+  display: grid;
+  width: 100%;
+  min-height: 52px;
+  grid-template-columns: 32px 1fr 14px;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 12px;
+  border: 1px solid color-mix(in srgb, var(--accent-two) 25%, var(--border));
+  border-radius: 14px;
+  color: var(--text);
+  background: color-mix(in srgb, var(--accent-two) 6%, var(--surface));
+  text-align: left;
+  cursor: pointer;
+  transition: transform .16s ease, border-color .16s ease, background .16s ease;
+}
+
+.file-action:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--accent-two) 52%, var(--border));
+  background: color-mix(in srgb, var(--accent-two) 10%, var(--surface));
+}
+
+.file-action:active { transform: translateY(0); }
+.file-action:focus-visible { outline: 3px solid color-mix(in srgb, var(--accent) 55%, transparent); outline-offset: 3px; }
+.file-action:disabled { cursor: wait; opacity: .68; }
+
+.file-icon {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border-radius: 10px;
+  color: var(--accent-two);
+  background: color-mix(in srgb, var(--accent-two) 11%, var(--surface-strong));
+}
+
+.file-icon svg { width: 19px; height: 19px; fill: currentColor; }
+.file-copy { display: grid; gap: 2px; min-width: 0; }
+.file-copy strong { font-size: 12px; line-height: 1.2; }
+.file-copy small { color: var(--muted); font-size: 9.5px; line-height: 1.3; }
+.file-arrow { color: var(--muted); font-size: 21px; line-height: 1; }
+
+.drop-hint {
+  margin: 7px 5px 0;
+  color: var(--muted);
+  font-size: 9.5px;
+  line-height: 1.4;
+  text-align: center;
+}
+
 .shortcut-row {
   display: flex;
   align-items: center;
@@ -203,6 +256,7 @@ kbd {
 }
 
 .status[hidden] { display: none; }
+.status.is-progress { color: var(--muted); }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .001ms !important; }

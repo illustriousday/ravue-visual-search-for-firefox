@@ -13,9 +13,9 @@ const RUNTIME = Object.freeze([
   "content/google-upload.js", "content/lens-ready.js", "content/loading-screen.js", "content/overlay.js",
   "content/smart-selection.js", "content/target.js", "icons/ravue-128.png", "icons/ravue-16.png",
   "icons/ravue-32.png", "icons/ravue-48.png", "icons/ravue-64.png", "icons/ravue-96.png",
-  "icons/ravue.svg", "manifest.json", "popup/popup.css", "popup/popup.html", "popup/popup.js",
+  "icons/ravue.svg", "manifest.json", "popup/image-input.js", "popup/popup.css", "popup/popup.html", "popup/popup.js",
   "results.html", "results.mjs", "shared/pending-store.js", "shared/session-store.js",
-  "ui/overlay.css", "ui/results.css",
+  "ui/overlay.css", "ui/results.css", "ui/upload.css", "upload.html",
 ].sort());
 
 const sha256 = (bytes) => createHash("sha256").update(bytes).digest("hex");
@@ -130,7 +130,7 @@ function writeNewOrIdentical(filename, bytes) {
 
 function build(destination) {
   const manifest = JSON.parse(fs.readFileSync(path.join(ROOT, "manifest.json"), "utf8"));
-  assert.equal(manifest.version, "2.1.6"); assert.equal(manifest.manifest_version, 3);
+  assert.equal(manifest.version, "2.1.7"); assert.equal(manifest.manifest_version, 3);
   const output = path.resolve(destination || path.join(ROOT, "..", "dist"));
   assert.ok(output !== ROOT && !output.startsWith(ROOT + path.sep), "Keep artifacts outside the source tree");
   fs.mkdirSync(output, { recursive: true });
@@ -140,8 +140,8 @@ function build(destination) {
   const allSource = new Map(sourceEntries.map(({ name, bytes }) => [name, bytes]));
   const runtimeEntries = RUNTIME.map((name) => { assert.ok(allSource.has(name), name); return { name, bytes: allSource.get(name) }; });
   const products = [
-    { name: "ravue-visual-search-v2.1.6-revisada.xpi", entries: runtimeEntries },
-    { name: "ravue-visual-search-v2.1.6-revisada-source.zip", entries: sourceEntries },
+    { name: "ravue-visual-search-v2.1.7.xpi", entries: runtimeEntries },
+    { name: "ravue-visual-search-v2.1.7-source.zip", entries: sourceEntries },
   ];
   const report = { manifestVersion: 3, version: manifest.version, id: manifest.browser_specific_settings.gecko.id, products: [], matchedRuntimeFiles: 0 };
   const archives = [];

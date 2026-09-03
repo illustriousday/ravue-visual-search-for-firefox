@@ -9,7 +9,7 @@ const manifest=JSON.parse(read('manifest.json'));
 const checks=[];
 function check(id,detail,fn){try{fn();checks.push({id,detail,ok:true});}catch(error){checks.push({id,detail,ok:false,error:error.message});}}
 check('manifest', 'MV3, version, public ID, minimum desktop version, data declaration',()=>{
- assert.equal(manifest.manifest_version,3);assert.equal(manifest.version,'2.1.6');
+ assert.equal(manifest.manifest_version,3);assert.equal(manifest.version,'2.1.7');
  assert.equal(manifest.browser_specific_settings.gecko.id,'{351e58ce-b7a8-4e88-b53f-d23acc464659}');
  assert.equal(manifest.browser_specific_settings.gecko.strict_min_version,'142.0');
  assert.deepEqual(manifest.browser_specific_settings.gecko.data_collection_permissions,{required:['websiteContent'],optional:[]});
@@ -96,7 +96,7 @@ const markupFindings={
  panelShortcutRowInHTML:read('popup/popup.html').includes('shortcut-row'),
  shortcutStillRegistered:manifest.commands['open-ravue'].suggested_key.default,
  overlayModal:read('content/overlay.js').includes('"aria-modal", "true"'),
- reducedMotion:['popup/popup.css','ui/overlay.css','ui/results.css','content/loading-screen.js'].map(file=>({file,declared:read(file).includes('prefers-reduced-motion')})),
+ reducedMotion:['popup/popup.css','ui/overlay.css','ui/results.css','ui/upload.css','content/loading-screen.js'].map(file=>({file,declared:read(file).includes('prefers-reduced-motion')})),
  warning:'ARIA/CSS presence is not a keyboard, screen-reader, layout or Firefox rendering pass.'
 };
 function luminance(hex){const [r,g,b]=hex.match(/[a-f\d]{2}/ig).map(n=>parseInt(n,16)/255).map(c=>c<=.04045?c/12.92:((c+.055)/1.055)**2.4);return .2126*r+.7152*g+.0722*b;}

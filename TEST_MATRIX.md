@@ -1,61 +1,67 @@
-# Validation Matrix — final Ravue 2.1.6 release
+# Validation Matrix — Ravue 2.1.7
 
-Documentation update: August 31, 2026. The maintainer reported successful Firefox results for the scenarios that had failed in the previous review and approved the baseline. The current repackaging changes documentation only; no test or runtime code was modified.
+Prepared on September 3, 2026. Ravue 2.1.7 is based on the maintainer-accepted 2.1.6 implementation. Its only functional addition is user-initiated image input: a toolbar row opens a stable Ravue page whose entire surface accepts drag and drop and whose button opens a file picker.
 
-The reference automated validation contains 179 passing tests: 166 unit/regression tests and 13 tests using native codecs. Everyday-use acceptance is not equivalent to an exhaustive manual test matrix. **The official AMO result and the signed update still require evidence.**
+Automated checks exercise packaged functions with explicit browser/DOM substitutes. Native pixel tests use Skia and libvips, not Gecko. They reduce risk but are not equivalent to an exhaustive Firefox, accessibility, Google-service, signed-update, or AMO review.
 
-## Automated validations
+## Automated coverage
 
-- Main suite: original tests preserved, with release contracts explicitly updated for the fixes and new regressions.
-- KEY-01 regressions: Enter on Cancel, Reset, Close, or Visible page does not submit the selection. Native button activation is preserved; IME composition is ignored.
-- LENS-02 regressions: on the Lens page, expiry, negative response, message failure, and the local timeout release the overlay.
-- Google Images loading: 12 regression scenarios cover waiting for the document to reach complete or for load before manipulating the upload controls. DOMContentLoaded does not trigger submission early. There is no local timeout for this initial wait; if load never occurs, the overlay may remain until the user closes the tab.
-- Single consumption: simultaneous calls do not receive duplicate copies of the JPEG.
-- URLs: recognizable local addresses are excluded; eligible URLs and image parameters remain preserved.
-- Geometry: 10,000 deterministic samples and cases covering boundaries, scaling, and proportions.
-- Native images: PNG → crop → JPEG at six scales; 288×412 image; tall image; transparent PNG, WebP, SVG; full-bitmap fallback and invalid decoding.
-- Package: syntax/JSON, local resources, PNG icons, translations, permissions, hashes, CRC, and XPI/source equality.
-- Contrast: base color pairs for small light-theme text exceed 4.5:1. This is not a WCAG certification of the entire interface.
+- **2.1.6 regression lock:** SHA-256 assertions preserve every established content script, selector module, result module, storage module, icon, `popup/popup.js`, fixture, unchanged test, and unchanged verification tool byte for byte.
+- **Manifest contract:** the version is 2.1.7; ID, MV3 declarations, minimum Firefox 142, permissions, hosts, `websiteContent`, locale mechanism, and lack of Android declaration remain unchanged.
+- **File decoding:** JPEG, PNG, WebP, GIF, BMP, and AVIF; invalid/unsupported files; 32 MB source limit; failed decode/read/encode.
+- **Byte preservation:** eligible JPEG, PNG, and WebP remain in their existing encoded format when no resizing is needed and the payload limit is met.
+- **Local conversion:** scale to at most 1200 pixels, JPEG quality 0.94, white background, resource cleanup, and a still-image result for animated or alternate formats.
+- **Drag representations:** Firefox file-promise URL, HTML image source, URI list, Mozilla URL, plain-text URL, local file priority, multiple/unsupported files, and empty data.
+- **Popup/page boundary:** the transient toolbar panel only requests a stable page; file selection and drag listeners exist on the stable page rather than the popup.
+- **Stable-page behavior:** full-page overlay, copy drop effect, choose button, progress, one submission, same-tab transition on success, remain open and restore controls on failure.
+- **Background boundary:** exact popup and image-page sender authentication; public URL reuse; local image payload reuse; no screenshot, page injection, or selector invocation for the new routes.
+- **Existing flows:** direct image URL/pixels, no source-page scrolling, area selection, smart selection, right-click clearing, keyboard and IME behavior, geometry, session lifecycle, Google upload, preparation cover, error handling, concurrency, and CSP fixtures.
+- **Packaging:** deterministic ZIP, CRC and round-trip bytes, exact runtime allowlist, XPI/source equality, valid icons, JSON, JavaScript syntax, locale parity, and no packaged tests/dependencies/older archives.
 
-API tests use explicit browser/DOM substitutes. Native tests use Skia and libvips, not Gecko. The 10,000 samples are part of existing tests; they are not thousands of independent tests. Publication information is contained in AMO_PUBLICATION.md within this source package and does not depend on an older publication kit.
+The final validation report records the exact test totals, file counts, hashes, environment, and unavailable external validators. Do not copy counts from an earlier 2.1.6 report.
 
-## Real-world test matrix and evidence log
+## Manual Firefox acceptance matrix
 
-In this table, “pending” means there is no individual formal evidence for that scenario; it does not invalidate or turn the maintainer's approved-use report into exhaustive testing. Record only what is actually executed.
+Use a separate Firefox profile without personal data. Record the exact unsigned XPI hash, Firefox version, operating system, language, theme, zoom, display scale, and result for each executed row. Do not bypass signing, CSP, consent, CAPTCHA, authentication, or Google restrictions.
 
-Use a separate profile with no personal information. Record the exact Firefox version, operating system, language, zoom, DPR/scale, permissions, and package SHA-256. Do not disable signing, CSP, or Google protections to force success.
+| ID | Check | Expected result | Evidence status before maintainer testing |
+| --- | --- | --- | --- |
+| P01 | Open panel in English | English controls, version 2.1.7, existing selector button intact | Pending real Firefox |
+| P02 | Open panel in Brazilian Portuguese | Portuguese controls selected from browser locale | Pending real Firefox |
+| P03 | In the panel, choose Add an image; drag a local JPEG anywhere over the opened page | Full-page drop target appears; that same tab becomes preparation/Lens after drop | Pending real Firefox |
+| P04 | Drag PNG/WebP/GIF/BMP/AVIF | Supported input prepares locally and reaches Lens | Pending real Firefox |
+| P05 | Drag unsupported/non-image content | Localized error; image-input page remains usable and does not navigate | Pending real Firefox |
+| P06 | Drag image over the image-input page, then leave without dropping | Overlay disappears; nothing is sent | Pending real Firefox |
+| P07 | Choose image, then cancel picker | Image-input page remains usable; no search is created | Pending real Firefox |
+| P08 | Choose small JPEG/PNG/WebP | Correct complete image reaches Lens without visible quality loss | Pending real Firefox |
+| P09 | Choose image larger than 1200 px | Correct aspect ratio and whole image after local reduction | Pending real Firefox |
+| P10 | Choose transparent or animated input | Still white-backed JPEG where conversion is required, as disclosed | Pending real Firefox |
+| P11 | Choose file above 32 MB | Localized size error; control recovers; page does not navigate | Pending real Firefox |
+| P12 | Drop a public web image onto the image-input page | Existing URL-priority route; source page unchanged | Pending real Firefox |
+| P13 | Drop private/local/authenticated URL | Rejected or fails safely; no alternate unrelated capture | Pending real Firefox |
+| R01 | Context-menu complete-image search | Same 2.1.6 flow; no selector and no source-page scrolling | Pending regression check |
+| R02 | Selector from panel | Starts empty; click suggestion and manual drag both work | Pending regression check |
+| R03 | Move/resize and right-click clear | Existing behavior remains unchanged | Pending regression check |
+| R04 | Visible page | Selects viewport but submits only after Search | Pending regression check |
+| R05 | Keyboard, IME, cancel, reset, close | Focused control performs only its own action | Pending regression check |
+| R06 | Tall image, iframe, lazy loading, object-fit, SVG/WebP | Existing direct/selector behavior remains unchanged | Pending site matrix |
+| R07 | Zoom and HiDPI | Crop boundaries and orientation remain correct | Pending device matrix |
+| R08 | Strong CSP and protected pages | Works where permitted or fails visibly without unsafe bypass | Pending browser matrix |
+| R09 | Slow Google load and unavailable control | Existing preparation and failure behavior remains as disclosed | Pending live-service matrix |
+| R10 | Close/retry and background suspension | Temporary state cleans up or resumes without duplicate payload | Pending lifecycle matrix |
+| U01 | Install 2.1.7 over signed 2.1.6 | Same add-on ID; one upgraded extension, no duplicate | Pending signed AMO build |
+| A01 | AMO automated validator | Review every warning/error before submission | Pending AMO upload |
 
-| ID | Check | Local evidence / pending item |
-| --- | --- | --- |
-| F01 | Installation on minimum Firefox 142 and the installed stable version | Manifest validated; installation pending |
-| F02 | Signed update 1.4.1 → 2.1.6, same ID, no duplicate | Identity compared; real update pending |
-| F03 | PT-BR/EN panel, version, button, and absence of shortcut row | Code/translations tested; rendering pending |
-| F04 | Panel, menu, and shortcut start with an empty selector | Logic tested; Firefox interaction pending |
-| F05 | Small, large, and taller-than-screen public images | Route tested, without capture/scroll; Google result pending |
-| F06 | Image inside same-origin and cross-origin iframes | Routes simulated; real permission behavior pending |
-| F07 | blob/data sources, JPEG, PNG, WebP, SVG, and transparency | Native pixels/formats tested; Gecko/CORS pending |
-| F08 | Lazy loading, picture/srcset, image still decoding | Partial local cases; real sites pending |
-| F09 | object-fit, borders/padding, object-position | Geometry tested; real CSS/rendering pending |
-| F10 | Zoom 80/100/125/150/200%; DPR 1/1.25/1.5/2/3 | Math and pixels tested; Firefox/OS pending |
-| F11 | Strong CSP and capture outside the viewport without shifting | Fixture and calls tested; Gecko security pending |
-| F12 | Smart click, drag, move, eight handles, and right-click | Logic tests passed; visual usability pending |
-| F13 | Large text, captions, speech bubbles, photos of people/animals | Synthetic heuristics; do not claim semantic recognition |
-| F14 | Enter/Space on every button, Tab/Shift+Tab, Esc, and arrow keys | Regressions passed; real keyboard/screen reader pending |
-| F15 | Visible page submits only after Search; cancel does not submit | Logic tested; real interaction pending |
-| F16 | Preparation in the same tab and corresponding result | State and per-stage waits tested; no global timeout for Google Images load; real scenario matrix pending |
-| F17 | Offline, missing input, expiry, 403, CAPTCHA, and consent | Failures simulated; real Google pending, no bypass |
-| F18 | Close result during preparation and retry; background restart | Cleanup/resume simulated; real suspension pending |
-| F19 | Two activations, two windows, concurrency | Locks and single consumption tested; real interaction pending |
-| F20 | Switch active tab during capture | Rejection tested; Firefox pending |
-| F21 | Revoke/grant each Google/Lens host permission | Static permissions; real experience pending |
-| F22 | Containers, cookies, and private window | Not validated; check before advertising compatibility in these contexts |
-| F23 | Themes, contrast, reduced motion, and interface scaling | Base colors/CSS inspected; visual composition pending |
-| F24 | Official validator on final XPI | Not executed in this environment |
-| F25 | Final XPI/source and signed runtime | Local package comparison; non-documentation files identical to accepted baseline; future signing pending |
+## Local difficult-page fixture
 
-## Difficult-page test lab
-
-From the source directory:
+From the extracted source directory:
 
 ```bash
 node tests/fixture-server.cjs
+```
+
+The fixture covers formats, iframes, lazy loading, object-fit, and strong CSP. A loopback-hosted image cannot prove Google's public URL retrieval; use a public, non-sensitive image for that route.
+
+## Release decision rule
+
+Do not label the 2.1.7 package final merely because local tests pass. The maintainer should first run at least P01–P13 and R01–R05 in the actual Firefox environment used day to day. Stop publication if the AMO validator adds an unexpected permission, data-disclosure issue, source mismatch, or functional warning.

@@ -1,99 +1,123 @@
 # Ravue — Visual Search for Firefox
 
-Visual search with Google Lens: search an image from the page or select any visible area and search it in a new tab.
+Search web images, image files from your computer, or any visible page area with Google Lens in one new tab.
 
-**Source version: 2.1.6 · Manifest V3 · Firefox Desktop 142 or later.**
+**Source version: 2.1.7 · Manifest V3 · Firefox Desktop 142 or later.**
 
-> **Repository for reference only:** this repository provides Ravue’s source code for transparency and reference. Bug reports, support requests, suggestions, feedback, pull requests, and contributions are not accepted.
+> **Source code for review only:** this repository exists for transparency and source-code review. It is not a support or contribution channel. Bug reports, support requests, suggestions, feedback, pull requests, and contributions are not accepted.
 
 ## Features
 
-- Panel with explanations and a button to open the area selector.
-- Search the clicked image directly from the context menu without opening the selector.
-- Prefer the image’s specific URL, avoiding crops limited by the visible screen area.
-- Manual click-and-drag selection and locally calculated click-based region suggestions.
-- Move and resize the selected area.
-- Right-click to clear the current selection without closing the selector.
-- Option to select the entire visible page area and confirm the search.
-- Preparation and results use the same new tab, without a separate upload tab.
-- Brazilian Portuguese and English; panel and preparation screen support light and dark themes.
+- Open a stable Ravue image-input page from the toolbar panel.
+- Drop an image anywhere on that page or choose a JPEG, PNG, WebP, GIF, BMP, or AVIF file from the computer.
+- Search the clicked web image directly from the context menu.
+- Prefer a web image's specific public URL, avoiding a viewport-limited crop.
+- Open the established area selector from the panel, context menu, or keyboard shortcut.
+- Click for a locally calculated region suggestion, or click and drag to draw manually.
+- Move, resize, reset, or right-click to clear a selection before confirmation.
+- Select the whole visible viewport, still requiring explicit Search confirmation.
+- Keep preparation and results in the same new tab.
+- Use English or Brazilian Portuguese according to Firefox's interface language.
+- Use light or dark appearance according to the operating-system preference.
 - No Ravue intermediary server, advertising, or telemetry.
 
-The source page is not scrolled automatically. The selector starts empty; the full visible page is selected only through the **Visible page** command.
+The accepted 2.1.6 direct-image, selector, preparation, and result flows are preserved in 2.1.7. The new file/drop input is isolated in `popup/image-input.js`, uses a stable extension page because Firefox toolbar popups close when they lose focus, and reuses the existing session-backed handoff.
 
 ## How to use
 
-### Panel and context menu
+### Drop or choose an image
 
-Click the Ravue icon, then select **Select an area**. The context menu also provides **Select an area with Ravue**. The configurable Alt+Shift+V shortcut remains available; its promotional line is not displayed in the panel.
+Open the Ravue toolbar panel and choose **Add an image**. A normal Ravue tab remains open while you either:
 
-### Search an entire image
+1. drag one image file or a web-page image anywhere over that tab and drop it when the full-page target appears; or
+2. choose **Choose an image** and select a supported image file.
 
-1. Right-click the image.
+Dropping or choosing the image is the explicit command to send that image to Google Lens. Merely opening the toolbar panel or image-input page, dragging without dropping, or opening and cancelling the file picker sends nothing. After a successful choice or drop, the same image-input tab becomes the preparation screen and then Google Lens.
+
+JPEG, PNG, and WebP files no larger than 1200 pixels on either side are kept in their existing encoded format when they fit the temporary payload limit. Larger inputs and GIF, BMP, or AVIF files are decoded locally and converted to a still JPEG at quality 0.94, with at most 1200 pixels on the longest side and a white transparency background. The source-file limit is 32 MB. Animation, transparency, metadata, or fine detail may be lost when conversion is required.
+
+A dropped web image may expose its HTTP(S) image URL rather than a local file. If that URL is eligible, Ravue uses the existing URL-priority route and Google retrieves the resource. Query parameters are preserved and may contain sensitive tokens; do not drop a private image or URL you do not want to share with Google.
+
+### Search a complete web image
+
+1. Right-click an image on a regular web page.
 2. Choose **Search this image with Ravue**, inside the Ravue submenu when applicable.
-3. A new tab opens, displays the preparation screen, and continues to the search.
+3. A new tab opens, shows the preparation screen, and continues to Google Lens.
 
-This command itself confirms submission. It does not open the area selector or request an additional confirmation.
+The command itself confirms submission. It does not open the area selector. Ravue first considers the image's specific HTTP(S) URL. Recognizable local/internal addresses and embedded credentials are excluded; fragments are removed and query parameters are preserved. This is a syntactic check, not DNS validation or proof that Google can retrieve the resource.
 
-When accepted, the image’s HTTP(S) URL is sent to Google Lens so the service can retrieve the resource directly. Ravue does not resample the image on this path. The URL must be accessible to Google; authentication requirements, origin restrictions, and temporary links may prevent the search from working.
+If no eligible URL exists, Ravue attempts the complete decoded image pixels in the top-level page and then, when permitted, a rendered-rectangle capture. Those fallbacks produce a JPEG with at most 1200 pixels on the longest side. They do not scroll the page. A Google-side failure after URL submission does not automatically start a second pixel-based submission.
 
-Recognizable local/internal addresses and URLs containing embedded usernames or passwords do not use this path. This check is syntactic only; it does not perform DNS resolution or prove that a resource is publicly accessible. URL parameters are preserved, so do not use sensitive or private links that you do not want to share.
+### Select a visible area
 
-If the URL is not eligible, Ravue attempts to use the image pixels decoded from the element in the top-level document and, if necessary and permitted, a capture of the rendered image rectangle. These paths produce a JPEG with a maximum dimension of 1200 pixels on the longest side without scrolling the page; they do not preserve the original file bytes. If a URL has already been submitted and later fails on Google’s side, Ravue does not automatically perform a new capture. Use the area selector as an alternative.
-
-### Select an area
+Open the toolbar panel and choose **Select an area**, use **Select an area with Ravue** in the context menu, or invoke the configured command.
 
 | Control | Action |
 | --- | --- |
 | Single left-click | Suggests a region under the pointer |
 | Click, hold, and drag | Draws a free-form rectangular selection |
-| Drag the selection or its handles | Moves or resizes the selection |
-| Right-click inside the selector | Clears the selection without closing the selector |
+| Drag the selection or a handle | Moves or resizes the selection |
+| Right-click in the selector | Clears the current selection without closing it |
 | Reset | Clears the current selection |
-| Visible page | Selects the entire viewport; does not submit by itself |
-| Search | Confirms submission of the selected area |
+| Visible page | Selects the whole viewport; does not submit by itself |
+| Search | Confirms and submits the selected pixels |
 | Cancel, Close, or Esc | Closes the selector before submission |
-| Tab / Shift+Tab | Moves through the available controls |
-| Enter / Space on a button | Activates that button |
-| Enter while the selection is focused | Confirms the search |
-| Arrow keys / Shift+Arrow keys | Moves the selection by 1 / 10 CSS pixels |
+| Tab / Shift+Tab | Moves through available controls |
+| Enter / Space on a button | Activates that button only |
+| Enter on the focused selection | Confirms the search |
+| Arrow / Shift+Arrow | Moves the selection by 1 / 10 CSS pixels |
 
-Smart selection uses local heuristics based on colors, regions, and document boundaries. It is not OCR, does not perform semantic recognition of people or animals, and does not download AI models. When analysis is ambiguous, it favors the full image when its boundaries are available. Suggestions may be inaccurate, so review and adjust the selection before searching.
+Smart selection uses local color, region, and document-boundary heuristics. It is not OCR, does not semantically recognize people or animals, and does not download or call an AI model. When analysis is ambiguous and image boundaries are available, it favors the full image. Always review the boundary before searching.
 
-To change browser zoom or window size while using the selector, close and reopen it. The selector operates on a capture taken when it was opened.
+The selector works from the viewport capture taken when it opens. Close and reopen it after changing page zoom or window size.
 
 ## Privacy
 
-For direct image searches, Google receives either the image’s specific URL or a JPEG prepared through a local fallback path.
+For a direct web-image search or a dropped web image, Google receives the image's specific eligible URL. For a chosen/dropped local file, Google receives either its preserved JPEG/PNG/WebP bytes or a locally converted JPEG. The original filename is not used for submission. For area selection, Firefox first captures the **entire visible viewport before cropping**; that working image remains local, and only the confirmed crop is prepared for Google.
 
-When the area selector is opened, Firefox captures the **entire viewport before cropping**. The working PNG and its analysis remain local. After confirmation, only the JPEG corresponding to the selected area is delivered to Google Images to initiate the Lens search. If you confirm the entire visible page, all of that visible content is included in the JPEG. Personal information present in the pixels is not automatically removed or hidden.
+Temporary image data, URLs, operation identifiers, result-tab associations, phases, and expiry times use `storage.session`. Records have a logical five-minute lifetime and are removed when consumed, completed, closed, or cleaned after expiry. Ravue does not archive images in `storage.local`, `storage.sync`, or a developer-operated server.
 
-The final JPEG, URL, and handoff state between steps use `storage.session`. Records have a logical lifetime of five minutes and are removed when consumed, when the process ends, or when expired records are cleaned up. The selector’s working capture has a separate lifecycle. `storage.local` and `storage.sync` are not used to archive images.
-
-Google Images/Lens is an external service. Google’s rules, cookies, normal tab history, processing, and retention are not controlled by Ravue. Read the [privacy policy](PRIVACY.md).
+Google Images and Google Lens are external services. Their requests, cookies, account state, normal history, processing, and retention are controlled by Firefox and Google, not Ravue. See [PRIVACY.md](PRIVACY.md).
 
 ## Compatibility and permissions
 
-This version uses Manifest V3 with a module-based event background implementation specific to Firefox. Android compatibility is not declared.
+Ravue uses Manifest V3 with a Firefox module event background. Android compatibility is not declared.
 
 | Permission | Purpose |
 | --- | --- |
-| `activeTab` | Temporary access to the tab activated by the user |
-| `menus` | Context-menu commands and identification of the clicked element |
-| `scripting` | Injection of local helpers and the area selector |
-| `storage` | Temporary data handoff through `storage.session` |
-| `https://images.google.com/*` | Delivery of the JPEG to the file input of a pending search |
-| `https://lens.google.com/*` | Preparation coverage in the search tab |
+| `activeTab` | Temporary access after an explicit action on the active tab |
+| `menus` | Context-menu commands and identification of the clicked image |
+| `scripting` | Injection of packaged helpers and the area selector |
+| `storage` | Temporary handoff through `storage.session` |
+| `https://images.google.com/*` | Delivery of a pending local image/crop through Google's file input |
+| `https://lens.google.com/*` | Preparation-cover handling for a pending result tab |
 
-Ravue does not request permanent access to all websites. Internal/protected pages and frame, CORS, or CSP restrictions may prevent some operations. Images inside inaccessible frames may still use an eligible URL; local fallback paths do not capture another frame as a substitute.
+Version 2.1.7 adds no permission and requests no permanent access to all websites. Internal/protected pages and frame, CORS, or CSP restrictions may prevent some existing page-based operations. File choice from the dedicated Ravue page does not require access to the current web page.
 
-Search availability and results depend on Google. Before submitting a JPEG, Ravue waits for the Google Images page to finish loading. This initial wait has no local timeout: if the load event never occurs, the preparation screen may remain visible until the user closes the tab. Later stages include failure handling, but there is no guaranteed maximum duration for the entire search process. Ravue does not bypass CAPTCHA, authentication, consent prompts, or service restrictions.
+Search availability depends on Google. The initial Google Images document-load wait has no local timeout; if the page never finishes loading, the preparation screen may remain until the tab is closed. Later input, post-attachment, and Lens-cover stages have separate bounds. Ravue does not bypass CAPTCHA, authentication, consent, rate limits, or service restrictions.
 
-## Testing and development
+## Testing and reproduction
 
-The runtime source is original, readable, and unminified. No compilation, transpilation, or bundling is required to run it.
+The runtime is readable and unminified. No compilation, transpilation, code generation, or bundling is required.
 
-With a compatible Node.js version:
+Run the local suite with a compatible Node.js version:
 
 ```bash
 node --experimental-vm-modules --test tests/*.test.cjs tests/regression/*.test.cjs
+```
+
+Optional native pixel tests require the test-only `@napi-rs/canvas` and `sharp` packages. They are not included in the XPI.
+
+Build deterministic archives without transforming source files:
+
+```bash
+node tools/package.cjs ../dist
+```
+
+The command creates the 2.1.7 XPI and matching source ZIP in `../dist`. See [TEST_MATRIX.md](TEST_MATRIX.md) for the scope and limits of validation.
+
+## Independence and rights
+
+Ravue is an independent project and is not affiliated with, sponsored by, or endorsed by Google or Mozilla. Google Lens and Firefox are trademarks of their respective owners.
+
+All rights are reserved unless the owner states otherwise.

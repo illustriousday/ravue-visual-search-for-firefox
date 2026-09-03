@@ -28,7 +28,7 @@ function read(file) {
 
 test("manifesto 3 usa permissões mínimas e uma versão de Firefox compatível", () => {
   assert.equal(manifest.manifest_version, 3);
-  assert.match(manifest.version, /^2\.1\.[56]$/);
+  assert.equal(manifest.version, "2.1.7");
   assert.equal(manifest.default_locale, "pt_BR");
   assert.deepEqual(manifest.permissions, ["activeTab", "menus", "scripting", "storage"]);
   assert.deepEqual(manifest.host_permissions, [
@@ -98,6 +98,22 @@ test("usa o nome público definitivo e descrições localizadas precisas", () =>
       "popupTitle",
       "popupDescription",
       "popupOpenSelector",
+      "popupOpenImageInput",
+      "popupOpenImageInputHint",
+      "popupImageInputReason",
+      "popupImagePageOpening",
+      "popupImagePageError",
+      "popupChooseFile",
+      "popupChooseHint",
+      "popupDropActive",
+      "uploadPageTitle",
+      "uploadEyebrow",
+      "uploadTitle",
+      "uploadBody",
+      "uploadDropPrompt",
+      "uploadDropAlternative",
+      "uploadSupported",
+      "uploadPrivacy",
       "popupImageBody",
       "popupSmartBody",
       "popupCorrectBody",
@@ -105,6 +121,13 @@ test("usa o nome público definitivo e descrições localizadas precisas", () =>
       "popupPrivacy",
       "popupOpening",
       "popupError",
+      "popupFilePreparing",
+      "popupFileOpening",
+      "popupFileSizeError",
+      "popupFileTypeError",
+      "popupDropError",
+      "popupFileReadError",
+      "popupFileSendError",
     ]) {
       assert.equal(typeof messages[id]?.message, "string", `${locale}: ${id}`);
       assert.ok(messages[id].message.length > 0, `${locale}: ${id} vazio`);
@@ -112,13 +135,18 @@ test("usa o nome público definitivo e descrições localizadas precisas", () =>
   }
 });
 
-test("o painel apresenta os controles e abre o seletor com acessibilidade", () => {
+test("o painel preserva o seletor e abre uma página estável para arquivos", () => {
   const html = read("popup/popup.html");
   const css = read("popup/popup.css");
   const script = read("popup/popup.js");
+  const imageInput = read("popup/image-input.js");
+  const uploadHtml = read("upload.html");
+  const uploadCss = read("ui/upload.css");
   const background = read("background.mjs");
 
   assert.match(html, /id="open-selector"/);
+  assert.match(html, /id="open-image-input"/);
+  assert.doesNotMatch(html, /id="image-file"|id="drop-overlay"/);
   assert.match(html, /data-i18n="popupDescription"/);
   assert.match(html, /data-i18n="popupImageBody"/);
   assert.match(html, /data-i18n="popupSmartBody"/);
@@ -136,8 +164,24 @@ test("o painel apresenta os controles e abre o seletor com acessibilidade", () =
   assert.match(script, /RV_POPUP_OPEN_SELECTOR/);
   assert.match(script, /runtime\.getManifest/);
   assert.doesNotMatch(script, /tabs\.(?:create|update|remove)|https?:\/\//);
-  assert.match(background, /extensionPage\(sender, ["']popup\/popup\.html["']\)/);
+  assert.match(imageInput, /RV_POPUP_OPEN_IMAGE_PAGE/);
+  assert.match(imageInput, /RV_IMAGE_PAGE_SEARCH_ITEM/);
+  assert.match(imageInput, /addEventListener\("drop"/);
+  assert.match(imageInput, /MAX_SOURCE_BYTES\s*=\s*32 \* 1024 \* 1024/);
+  assert.doesNotMatch(imageInput, /\bfetch\s*\(|XMLHttpRequest|tabs\.(?:create|update|remove)/);
+  assert.match(uploadHtml, /id="choose-image"/);
+  assert.match(uploadHtml, /id="image-file"[^>]+type="file"/);
+  assert.match(uploadHtml, /id="drop-overlay"/);
+  assert.match(uploadHtml, /role="status"/);
+  assert.match(uploadHtml, /aria-live="polite"/);
+  assert.doesNotMatch(uploadHtml, /<script(?![^>]*\bsrc=)[^>]*>/i);
+  assert.doesNotMatch(uploadHtml, /https?:\/\//i);
+  assert.match(uploadCss, /prefers-color-scheme:\s*dark/);
+  assert.match(uploadCss, /prefers-reduced-motion:\s*reduce/);
+  assert.match(background, /sender\?\.url !== browser\.runtime\.getURL\("popup\/popup\.html"\)/);
+  assert.match(background, /sender\?\.url !== browser\.runtime\.getURL\("upload\.html"\)/);
   assert.match(background, /browser\.tabs\.query\(\{ active: true, currentWindow: true \}\)/);
+  assert.match(background, /url: browser\.runtime\.getURL\("upload\.html"\)/);
 });
 
 test("todos os recursos locais declarados ou importados existem", () => {
@@ -161,6 +205,9 @@ test("todos os recursos locais declarados ou importados existem", () => {
     "popup/popup.html",
     "popup/popup.css",
     "popup/popup.js",
+    "popup/image-input.js",
+    "upload.html",
+    "ui/upload.css",
   ]) assertFile(file);
 
   for (const moduleName of ["background.mjs", "results.mjs"]) {
@@ -179,6 +226,10 @@ test("todos os recursos locais declarados ou importados existem", () => {
     if (match[1].startsWith("data:")) continue;
     const resolved = path.posix.normalize(path.posix.join("popup", match[1]));
     assertFile(resolved);
+  }
+  const uploadHtml = read("upload.html");
+  for (const match of uploadHtml.matchAll(/(?:src|href)="([^"]+)"/g)) {
+    if (!match[1].startsWith("data:")) assertFile(match[1]);
   }
   assert.equal(fs.existsSync(path.join(root, "background.html")), false);
   assert.equal(fs.existsSync(path.join(root, "content/lens-result.js")), false);
@@ -376,29 +427,32 @@ test("não contém código remoto nem interceptação de rede", () => {
   )), true);
 });
 
-test("documenta com precisão privacidade, MV3 e revisão do AMO", () => {
+test("documents privacy, MV3, file input, and AMO review accurately in English", () => {
   const publication = read("AMO_PUBLICATION.md");
   const privacy = read("PRIVACY.md");
   const readme = read("README.md");
 
   assert.match(publication, /Ravue — Visual Search for Firefox/);
-  assert.match(publication, /2\.1\.5/);
   assert.match(publication, /2\.1\.6/);
+  assert.match(publication, /2\.1\.7/);
   assert.match(publication, /Manifest V3/);
   assert.match(publication, /Notes for Reviewers/);
-  assert.match(publication, /Test 1 — direct image search/);
-  assert.match(publication, /Test 2 — area selection/);
+  assert.match(publication, /direct image search/i);
+  assert.match(publication, /area selection/i);
+  assert.match(publication, /choose an image|image file/i);
+  assert.match(publication, /drag/i);
   assert.match(publication, /websiteContent/);
-  assert.match(privacy, /imagem inteira/i);
-  assert.match(privacy, /não rola|não chama funções de rolagem|não rolar|sem rolar/i);
+  assert.match(privacy, /complete image|full image/i);
+  assert.match(privacy, /does not scroll/i);
   assert.match(privacy, /storage\.session/);
-  assert.match(privacy, /URL pública específica|URL específica da imagem/i);
-  assert.match(privacy, /não envia a URL da página/i);
+  assert.match(privacy, /specific (?:public )?URL|image(?:'s| URL) specific URL/i);
+  assert.match(privacy, /does not send the page URL/i);
   assert.match(privacy, /uploadbyurl/);
-  assert.doesNotMatch(privacy, /captura restrita ao retângulo completo/i);
+  assert.match(privacy, /chosen|dropped/i);
+  assert.match(privacy, /32 MB/);
   assert.match(readme, /Manifest V3/);
-  assert.match(readme, /somente para consulta/i);
-  assert.match(readme, /clique.*selecion/i);
-  assert.match(readme, /imagem inteira.*ambígu|ambígu.*imagem inteira/i);
-  assert.match(privacy, /análise visual.*local/i);
+  assert.match(readme, /source-only|source code.*review|transparency/i);
+  assert.match(readme, /click.*select/i);
+  assert.match(readme, /ambiguous.*full image|full image.*ambiguous/i);
+  assert.match(privacy, /visual analysis is performed locally/i);
 });

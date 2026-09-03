@@ -468,6 +468,81 @@ async function openSelectorFromPopup(sender) {
   }
 }
 
+async function openImagePageFromPopup(sender) {
+  if (sender?.url !== browser.runtime.getURL("popup/popup.html")) return { ok: false };
+  const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
+  if (!tab || !Number.isInteger(tab.id) || !Number.isInteger(tab.windowId)) {
+    return {
+      ok: false,
+      error: text("popupImagePageError", "Ravue could not open image input."),
+    };
+  }
+
+  try {
+    const imagePage = await browser.tabs.create({
+      windowId: tab.windowId,
+      openerTabId: tab.id,
+      url: browser.runtime.getURL("upload.html"),
+      active: true,
+    });
+    if (!Number.isInteger(imagePage?.id)) throw new Error("Image input tab did not open");
+    return { ok: true };
+  } catch (error) {
+    console.error("[Ravue] Image input could not be opened", error);
+    return {
+      ok: false,
+      error: text("popupImagePageError", "Ravue could not open image input."),
+    };
+  }
+}
+
+async function stageImageForTab(tabId, image) {
+  const uploadId = id();
+  await globalThis.RavueSessionStore.put(uploadId, image);
+  try {
+    await globalThis.RavuePendingStore.put(tabId, uploadId);
+  } catch (error) {
+    await globalThis.RavueSessionStore.remove(uploadId).catch(() => {});
+    throw error;
+  }
+}
+
+async function searchItemFromImagePage(request, sender) {
+  if (sender?.url !== browser.runtime.getURL("upload.html") ||
+      !Number.isInteger(sender?.tab?.id) || !Number.isInteger(sender?.tab?.windowId)) {
+    return { ok: false };
+  }
+
+  try {
+    if (request?.item?.kind === "url") {
+      const source = publicImageSource(request.item.sourceUrl);
+      if (!source) {
+        return {
+          ok: false,
+          error: text("popupDropError", "Drop an image file or an image from a web page."),
+        };
+      }
+      await globalThis.RavuePendingStore.putUrl(sender.tab.id, source);
+      return { ok: true, resultUrl: browser.runtime.getURL("results.html") };
+    }
+    if (request?.item?.kind === "image" &&
+        globalThis.RavueSessionStore.validPayload(request.item.payload)) {
+      await stageImageForTab(sender.tab.id, request.item.payload);
+      return { ok: true, resultUrl: browser.runtime.getURL("results.html") };
+    }
+    return {
+      ok: false,
+      error: text("popupFileReadError", "Ravue could not prepare this image."),
+    };
+  } catch (error) {
+    console.error("[Ravue] Image input could not be staged", error);
+    return {
+      ok: false,
+      error: text("popupFileSendError", "Ravue could not send this image to Google Lens."),
+    };
+  }
+}
+
 function googleImagesPage(sender) {
   try {
     return new URL(sender?.url).origin === "https://images.google.com";
@@ -623,6 +698,10 @@ browser.runtime.onMessage.addListener((request, sender) => {
       return closeResultTab(sender);
     case "RV_POPUP_OPEN_SELECTOR":
       return openSelectorFromPopup(sender);
+    case "RV_POPUP_OPEN_IMAGE_PAGE":
+      return openImagePageFromPopup(sender);
+    case "RV_IMAGE_PAGE_SEARCH_ITEM":
+      return searchItemFromImagePage(request, sender);
     case "RV_START_GOOGLE_STAGE":
       return startGoogleStage(sender);
     case "RV_GOOGLE_UPLOAD_PROBE":

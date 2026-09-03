@@ -5,7 +5,7 @@ const { zip, unzip, sha256, ROOT, RUNTIME } = require("../tools/package.cjs");
 
 test("packaging preserves every binary and UTF-8 byte without transforming source", () => {
   const entries = [
-    { name: "manifest.json", bytes: Buffer.from('{"version":"2.1.6"}\n') },
+    { name: "manifest.json", bytes: Buffer.from('{"version":"2.1.7"}\n') },
     { name: "test/ícone.bin", bytes: Buffer.from(Array.from({ length: 256 }, (_, index) => index)) },
     { name: "empty.txt", bytes: Buffer.alloc(0) },
   ];

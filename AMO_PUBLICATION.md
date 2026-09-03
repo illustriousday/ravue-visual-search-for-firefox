@@ -1,220 +1,161 @@
-# Publication of the final Ravue 2.1.6 release
+# Ravue 2.1.7 — AMO Publication Material
 
-Documentation aligned on August 31, 2026 for the public update from 1.4.1 → 2.1.6. The maintainer tested the scenarios that had failed in the previous review, approved the behavior, and authorized repackaging solely to correct the documentation.
+Prepared on September 3, 2026 for an update of the existing Ravue listing from 2.1.6 to 2.1.7. Nothing in this document publishes or signs the add-on.
 
-## Identity and repackaging scope
+## Identity and scope
 
-- Name: Ravue — Visual Search for Firefox.
-- Version: 2.1.6; Manifest V3.
-- ID: `{351e58ce-b7a8-4e88-b53f-d23acc464659}`.
-- Minimum Firefox Desktop version: 142.0; no Android compatibility declared.
-- Permissions preserved: activeTab, menus, scripting, storage, images.google.com and lens.google.com.
-- Declared transmitted-data category: websiteContent.
-- Keep All Rights Reserved and the GitHub repository for reference only.
+- Name: Ravue — Visual Search for Firefox
+- Add-on ID: `{351e58ce-b7a8-4e88-b53f-d23acc464659}`
+- Version: 2.1.7
+- Manifest: V3, Firefox module event background
+- Minimum Firefox Desktop: 142.0
+- Android: not declared
+- Existing permissions: `activeTab`, `menus`, `scripting`, `storage`
+- Existing host permissions: `https://images.google.com/*`, `https://lens.google.com/*`
+- Required transmitted-data category: `websiteContent`
+- Primary listing/document language: English
+- Runtime UI: English or Brazilian Portuguese according to Firefox
+- License: All Rights Reserved
+- Repository: transparency and source-code review only; no public support or contribution channel
 
-The XPI contains 31 files; only README.md and PRIVACY.md were updated. The source ZIP contains 69 files; in addition to those two documents, CHANGELOG.md, TEST_MATRIX.md and AMO_PUBLICATION.md were updated. All other files remain identical to those in the pair accepted during the maintainer's testing. There were no changes to code, tests, manifest, permissions, styles, interface, icons, or submission methods. The previous files were preserved separately.
+Version 2.1.7 adds only a toolbar row that opens a stable Ravue image-input page, whole-page image drag and drop there, a file-picker button, the isolated local preparation required by those inputs, their localized messages, and their tests/documentation. It adds no permission, host, remote code, account, server, telemetry, advertisement, or background collection.
 
-Delivery packages:
+The accepted 2.1.6 content scripts, selector modules, result modules, storage modules, icons, and original `popup/popup.js` remain byte-for-byte identical. The new controller is `popup/image-input.js`; in the transient toolbar popup it only requests `upload.html`, while the stable page owns the file picker and drag listeners. The background authenticates each exact packaged sender and stages a validated URL or image payload for the existing same-tab result flow.
 
-- `ravue-visual-search-v2.1.6-final.xpi` — unsigned; 70881 bytes; SHA-256 `693573af60bdceb97bf28cf4a71954bdc7a863defff49cf5ff65356c05120148`.
-- `ravue-visual-search-v2.1.6-final-source.zip` — matching source, with manifest.json at the root and no other embedded packages.
+## Final artifacts
 
-The new hashes differ from the previous packages because of the documentation changes. Do not use a hash or report from another revision merely because it is also named 2.1.6. The hash of the source ZIP itself is calculated externally after packaging, avoiding a circular reference.
+The unsigned XPI fingerprint below is reproducible from this source. The source archive cannot contain its own final byte length or SHA-256 without changing those values; record them from the final delivery handoff instead of inserting self-referential metadata here.
 
-## Validation and limitations
+| Artifact | Files | Bytes | SHA-256 |
+| --- | ---: | ---: | --- |
+| `ravue-visual-search-v2.1.7.xpi` | 34 | 80,493 | `c6aac7c2f8842b6a83125e88d4e0860030e5ba3fc5482eaa5969c932c5cae7e4` |
+| `ravue-visual-search-v2.1.7-source.zip` | 74 | Recorded in the external delivery checksum | Recorded in the external delivery checksum |
 
-The automated reference for this implementation contains 179 passing tests: 166 unit/regression tests and 13 native-codec tests, including 12 upload-loading scenarios. The tests and tools are preserved without modification. Verification of this repackaging reruns the suite and compares every file against the accepted baseline.
+The XPI must be an unsigned local candidate until AMO signs it. AMO signing changes the distributed XPI hash. The source ZIP has `manifest.json` at its root and contains no XPI, older ZIP, executable dependency, or generated runtime.
 
-API/DOM tests use explicit substitutes; native codecs use Skia/libvips, not Gecko. Thousands of independent tests are not attributed to the geometry samples. The suite checks 42 syntax files and 3 JSON files.
-
-The maintainer reported successful Firefox results for the scenarios that had previously failed. Formal records covering the entire matrix by browser, operating system, duration, or scenario were not provided. The report is not presented as an exhaustive matrix.
-
-The official validator was not available in the preparation environment; check its result during the AMO upload. Signed installation/update from 1.4.1 to 2.1.6 still needs to be verified. There is no promise of Mozilla approval, permanent Google availability, or absolute absence of defects. See [TEST_MATRIX.md](TEST_MATRIX.md).
-
-## Technical points now reflected in the documentation
-
-The initial Google Images wait uses document completion or load, exactly as in the behavior restored from 2.1.5. Submission does not start on DOMContentLoaded. There is no local timeout for this initial wait; if load never occurs, the preparation screen may remain until the user closes the tab.
-
-Separate limits still exist at different stages: 12 seconds to wait for the file input when necessary, 20 seconds after attaching the file, and an independent 30-second limit for the overlay on the Lens page. These limits do not form a global deadline for search completion.
-
-Submission through the image's specific URL, local fallback paths, the selector, right-click behavior, keyboard handling, preparation in the same tab, and the absence of automatic scrolling were not changed by this repackaging.
-
-## Publish one step at a time
-
-1. Use the existing Ravue listing. Do not create another extension or change the ID.
-2. Upload the final XPI and verify the version, platform, permissions, and validator result. If an error, warning, or unavailability of version number 2.1.6 appears, stop and evaluate it; do not modify the package to work around the platform.
-3. For the source-transformation question, answer No for this runtime. The files are readable; there is no compilation, transpilation, minification, or bundling. The packager only collects them. If requested, provide the matching source ZIP. [Mozilla source-code criteria](https://extensionworkshop.com/documentation/publish/source-code-submission/).
-4. Fill in the reviewer notes and release notes using the sections in this document. Continue to respond to private requests from Mozilla even though the public GitHub repository does not provide support.
-5. Update the listing text and privacy policy, keeping the presentation aligned with the version actually offered to the public.
-6. Review the final screenshots before submitting them. Do not expose personal data.
-7. After approval/publication, verify the offered version, installation, signed update, and both search flows. Signing changes the file hash; keep the signed XPI separately.
-
-Nothing was published to AMO or changed remotely on GitHub by this document.
-
-## Listing fields
+## AMO listing fields
 
 | Field | Value |
 | --- | --- |
+| Existing add-on | Update the current Ravue listing; do not create a duplicate |
 | Name | Ravue — Visual Search for Firefox |
-| Existing slug | ravue-visual-search-firefox |
-| Default language | Brazilian Portuguese |
+| Default listing language | English |
 | Homepage | https://github.com/illustriousday/ravue-visual-search-for-firefox |
-| Support and contributions | Keep fields empty and public channels disabled |
-| License | Keep All Rights Reserved |
+| Support / contributions | Leave public channels empty or disabled |
+| License | All Rights Reserved |
 | Categories | Search Tools; Photos, Music & Videos |
-| Tags | google; image search; search |
-| Privacy policy | Copy PRIVACY.md from this source in full |
-| Experimental / payment | Keep the final free-release decision |
+| Suggested tags | google; image search; visual search |
+| Privacy policy | Publish the complete matching `PRIVACY.md` |
+| Source-code question | **No** — no compilation, transpilation, minification, generation, or bundling |
 
-Check the preview and accepted format for each field. Do not paste Markdown link syntax into a field that does not support it; use the full URL when necessary.
+### Summary
 
-## Summary
+Search web images, image files from your computer, or any visible page area with Google Lens. Open Ravue's image page to drop or choose a file, or use its local area selector.
 
-Search whole images or visible page areas with Google Lens. Click or drag to select, review your crop, and open results in a new tab.
+### Description
 
-## Description
+Ravue makes visual search in Firefox simple, direct, and controlled by an explicit user action.
 
-Search visually with Ravue: use an image from the page or choose a visible area to look up with Google Lens.
+Search a web image from its context menu, open Ravue's dedicated image page to drop or choose an image, or select any visible area of a page. Each search opens in one new tab and continues to Google Lens while the source page remains unchanged.
 
-### Panel and quick access
+#### Drop or choose an image
 
-Open Ravue's toolbar panel and choose **Select an area**. You can also start from the context menu.
+Open the toolbar panel and choose **Add an image**. Ravue opens a normal, stable tab where you can drop an image anywhere or choose **Choose an image** to select a local file. Ravue supports JPEG, PNG, WebP, GIF, BMP, and AVIF files up to 32 MB.
 
-### Search a whole image
+JPEG, PNG, and WebP are preserved without re-encoding when their dimensions and temporary payload size allow it. Inputs that require conversion are processed locally as a still JPEG, limited to 1200 pixels on the longest side. Choosing or dropping the image is the explicit command to send it to Google Lens; opening the toolbar panel or image page, or cancelling the picker, sends nothing. After a valid input, that same tab becomes Ravue's preparation screen and then Google Lens.
 
-Right-click an image and choose **Search this image with Ravue**. The extension prioritizes the image's specific URL so Google can retrieve the resource without cropping it to the visible screen boundaries. This requires the address to be accessible to Google.
+#### Search a complete web image
 
-### Select your way
+Right-click an image and choose **Search this image with Ravue**. When possible, Ravue gives Google the image's specific eligible URL so the resource is not limited to the visible screen area. The address must be accessible to Google. If the URL is initially unavailable or ineligible, Ravue can use the existing local pixel/rendered-image fallback when Firefox permits it, without scrolling the source page.
 
-Click once to suggest a region, or click, hold, and drag to draw freely. Move and resize the selection before searching. Suggestions use local heuristics; review the boundaries before confirming.
+#### Select any visible area
 
-### Correct without restarting
+Open **Select an area** from the panel or context menu. Click once for a locally calculated region suggestion, or click, hold, and drag to draw freely. Move or resize the boundary, right-click to clear it without restarting, and confirm only when satisfied. **Visible page** selects the viewport but still requires Search confirmation.
 
-Right-click inside the selector to clear the current selection and choose another without closing it. **Visible page** selects the entire viewport; confirm with **Search** to send it.
+Suggestions use packaged pixel and document-boundary heuristics. They do not use OCR, a remote AI service, or downloaded models, and they do not semantically recognize people or animals. Review the proposed boundary before searching.
 
-### One new search tab
+#### Privacy and control
 
-The original page is not automatically scrolled. The new tab shows **Preparing your search** during the transition to Google Lens, without creating a second helper upload tab. Result availability depends on Google's services.
+For an eligible web image URL, Google receives that specific URL, including any query parameters. Recognizable local addresses and embedded credentials are excluded, but Ravue does not perform DNS verification or remove tokens from a URL. Do not search a private image or sensitive URL you do not want to share.
 
-### Privacy and control
+For a chosen/dropped file or local fallback, Ravue locally prepares the image and passes it through the Google Images file input. For area selection, Firefox first captures the entire visible viewport locally before cropping; nothing is sent while the selection is adjusted. Only the chosen/dropped image or confirmed crop is used for the requested search. Pixels can contain personal information and are not automatically redacted.
 
-For direct search, Google receives the image's specific URL, including query parameters, or a locally prepared JPEG when the URL is not eligible. Recognizable local addresses are excluded from URL delivery, but Ravue does not verify public accessibility through DNS or automatically remove query tokens. Avoid private images or sensitive links. Failure after a URL has already been sent does not automatically trigger another capture.
+Temporary payloads and operation state use Firefox session storage with a logical five-minute lifetime. Ravue has no intermediary server, advertising, or telemetry. Google processing, cookies, account state, history, and retention are governed by Firefox and Google's services. See the privacy policy for complete details.
 
-The area selector first captures the entire visible viewport locally, then crops it. Click suggestions do not use OCR or remote AI. After confirmation, the selected area's JPEG is delivered to Google Images to start a Lens search. Review the selected content: its pixels may contain personal information. Local image alternatives produce JPEGs with a maximum dimension of 1200 pixels on the longest side.
+#### Compatibility and independence
 
-Ravue has no intermediary server, advertising, or telemetry. Google's processing is subject to its own terms and privacy policy. See the extension's privacy policy for details.
+Ravue uses Manifest V3 and requires Firefox Desktop 142 or later. The interface follows Firefox's English or Brazilian Portuguese locale and supports light and dark appearance.
 
-The interface supports Brazilian Portuguese and English. Requires Firefox Desktop 142 or later.
+Search results depend on Google Images and Google Lens. Ravue does not bypass consent, authentication, CAPTCHA, rate limits, or service restrictions.
 
-### Source code for reference
+Source code: https://github.com/illustriousday/ravue-visual-search-for-firefox
 
-https://github.com/illustriousday/ravue-visual-search-for-firefox
-
-The repository is provided for transparency and source-code reference only. Support requests, bug reports, suggestions, feedback, pull requests, and contributions are not accepted.
+The repository is maintained exclusively for transparency and source-code review. Support requests, bug reports, suggestions, feedback, pull requests, and contributions are not accepted.
 
 Ravue is independent and is not affiliated with, sponsored by, or endorsed by Google or Mozilla. Google Lens and Firefox are trademarks of their respective owners.
 
-## Release notes
+### Release notes
 
-Ravue 2.1.6 — update from public version 1.4.1
+Ravue 2.1.7 adds two optional image-input methods while preserving the accepted 2.1.6 search and selector behavior:
 
-- Migrates to Manifest V3 for Firefox Desktop, minimum version 142.
-- Adds a toolbar panel with an introduction and controls.
-- Supports manual drag selection and local click-to-suggest regions.
-- Right-click clears a selection without restarting the selector.
-- Direct image search prioritizes the image URL without limiting the resource to the viewport.
-- Local pixel/capture alternatives remain available when no URL is eligible.
-- Preparation and results share one new tab; the original page is not automatically scrolled.
-- Fixes keyboard confirmation, expired-state handling, and concurrent image consumption.
-- Crop delivery waits for the Google Images page to finish loading, preserving the accepted upload flow.
-- Excludes recognizable local addresses from URL delivery and improves light-theme text contrast.
-- Expands privacy documentation and tests.
+- Open a stable image-input page from the Ravue toolbar panel.
+- Drop an image anywhere on that page or choose a local image through its dedicated button.
+- Supports JPEG, PNG, WebP, GIF, BMP, and AVIF up to 32 MB.
+- Preserves eligible JPEG/PNG/WebP bytes; converts only when necessary.
+- Reuses the existing URL-priority route for dropped web images.
+- Adds localized progress, validation, and recovery messages.
+- Adds no permission, host, tracking, server, or remote code.
+- Keeps direct image search, area selection, right-click clear, keyboard handling, no-scroll behavior, and the single result-tab flow unchanged.
 
-Crop delivery uses the Google Images file input. Compared with 1.4.1, scripting, storage, and images.google.com permissions are new; no permanent all-sites access is requested. The keyboard shortcut remains available without its promotional row in the panel. Brazilian Portuguese and English are supported.
+## Notes for Reviewers (concise private field)
 
-## Notes for Reviewers
+Copy only the block below into the private reviewer field.
 
-Copy the content below into the private reviewer field without copying this instruction.
+```text
+RAVUE 2.1.7 — UPDATE FROM 2.1.6
 
-RAVUE 2.1.6 — PUBLIC UPDATE FROM 1.4.1
+IDENTITY
+Existing add-on ID: {351e58ce-b7a8-4e88-b53f-d23acc464659}
+Manifest V3; Firefox Desktop 142+; no Android declaration.
 
-### IDENTITY
+SCOPE
+This update adds only (1) a toolbar row that opens a stable packaged image-input page, (2) whole-page image drag/drop there, and (3) a Choose an image button there. Firefox toolbar popups are transient, so file picking and drag handling deliberately occur in upload.html, not inside the popup. No permission, host, data category, remote code, server, account, telemetry, or advertising was added. Existing direct-image, selector, Google preparation, and result behavior is preserved. Established content/selector/result/storage modules, icons, and popup/popup.js match the accepted 2.1.6 source byte for byte. New UI logic is isolated in popup/image-input.js, upload.html, and ui/upload.css. The background addition accepts only messages from the exact packaged popup or image-page URL and stages a validated URL/image for the existing same-tab result flow.
 
-Name: Ravue — Visual Search for Firefox  
-Add-on ID: {351e58ce-b7a8-4e88-b53f-d23acc464659}  
-Manifest version: 3  
-Extension version: 2.1.6  
-Minimum Firefox Desktop: 142.0  
-No Android compatibility is declared.
+TEST
+1. Open the toolbar panel and choose “Add an image”. Verify one normal Ravue image-input tab opens. Drag a public, non-sensitive web image anywhere over that page; a full-page target appears. Drop it and verify that same tab becomes the preparation screen and then Lens.
+2. From the stable image-input page, choose “Choose an image” and select JPEG, PNG, WebP, GIF, BMP, or AVIF (<=32 MB). Canceling the picker sends nothing. Unsupported/oversized input shows an error, restores the button, and keeps the page open.
+3. Regression: right-click a web image and use “Search this image with Ravue”; verify no selector and no source-page scroll. Open “Select an area”; verify click suggestion, manual drag, move/resize, right-click clear, Visible page requiring Search, and keyboard controls.
 
-This updates the existing Ravue listing. The maintainer accepted the 2.1.6 implementation after testing the restored upload flow in the previously failing scenarios, then authorized a documentation-only repack. All non-documentation files remain byte-for-byte identical to that accepted base, including every executable, manifest, CSS, HTML, localization file, icon, test, and packaging tool. Only README.md and PRIVACY.md changed inside the XPI; the source ZIP also updates CHANGELOG.md, TEST_MATRIX.md and AMO_PUBLICATION.md. There is no version, ID, permission, or behavior change in this repack.
+DATA FLOW
+Choosing or dropping is the deliberate single-use command. A dropped web-image URL uses the existing syntactically validated HTTPS/HTTP URL route; fragments are removed and query parameters preserved. Ravue does not fetch that URL. Local JPEG/PNG/WebP bytes are preserved when <=1200 px and within the temporary payload cap. Other/larger supported inputs are decoded locally into a still JPEG (quality .94, max side 1200, white background). The original local filename/path is not submitted. The payload then uses the existing storage.session -> results.html -> Google Images file-input handoff. Temporary records are logically valid for five minutes. No unrelated data is appended.
 
-No Ravue account, login, or developer-provided credentials are required. Google Images/Lens may present its own consent, login, rate limit, or CAPTCHA. Ravue does not bypass those controls.
+CONSENT AND DISCLOSURE
+The image-input page and AMO listing state that the chosen/dropped image is sent to Google Lens. No data is sent by opening the toolbar panel or image page, hovering a drag, canceling the picker, or adjusting a crop. This is purpose-limited, user-initiated single-use transmission. Required manifest category remains websiteContent.
 
-### CHANGES SINCE 1.4.1
+SOURCE
+Readable, unminified source; no compilation, transpilation, code generation, or bundling. Answer No to the source-transformation question. tools/package.cjs only creates deterministic archives. No credentials are required. Google may show consent/login/CAPTCHA/rate limits; Ravue does not bypass them.
+```
 
-The update migrates from MV2 to Firefox MV3 and adds the toolbar panel, local click-to-suggest selection, right-click clearing, URL-priority image search, and session-backed handoff. The event background is a packaged module using background.scripts/type module, not a Chrome service worker.
+## Validation disclosure
 
-The retained changes correct Enter handling on focused selector buttons, pending-operation expiry and preparation-cover cleanup, duplicate consumption of stored JPEGs, recognizable local URL handling, and two light-theme text colors. The direct-image route does not open the area selector. Preparation and results share the same newly opened tab; no helper tab or automatic source-page scrolling is used.
+The final local report must be read together with [TEST_MATRIX.md](TEST_MATRIX.md). Local automated and native-codec tests are not Firefox or the AMO validator. This preparation environment did not contain Firefox, `web-ext`, or `addons-linter`; no official validation, signed-update result, exhaustive accessibility audit, or guaranteed Google availability is claimed.
 
-Before this documentation-only repack, the last executable change had restored only waitForDocumentComplete in content/google-upload.js to the 2.1.5 behavior. It waits for document.readyState === “complete” or the window load event before touching the upload controls. It does not start on DOMContentLoaded, and the additional 30-second deadline previously introduced for this initial wait is absent. This initial wait has no local timeout: if load never occurs, the preparation cover may remain until the user closes the tab. The existing 12-second file-input wait, 20-second post-attachment timer, and separate 30-second Lens-page cover deadline remain. These are different stages, not an overall search-duration guarantee.
+## Submission sequence
 
-### TEST STEPS
+1. Upload the final 2.1.7 XPI to the existing listing.
+2. Stop and inspect every AMO validator warning or error; do not alter the package merely to bypass the platform.
+3. For **Does this add-on require source code?**, select **No** because the runtime is already readable and not transformed. If Mozilla separately requests source, provide the exact matching source ZIP.
+4. Paste the concise reviewer block and 2.1.7 release notes.
+5. Update the English summary, description, and complete privacy policy.
+6. Add or replace screenshots only with real 2.1.7 Firefox captures showing no personal information, including the stable image-input page if this feature is illustrated. Existing screenshots of unchanged selector/context-menu behavior may remain if they still match.
+7. After signing/publication, verify upgrade from signed 2.1.6, both new panel inputs, direct image search, and area selection. Keep the signed XPI separately because its hash differs from the unsigned candidate.
 
-#### Test 1 — direct image search
+## Reproduction
 
-1. Open a normal page with a public, non-sensitive image, including a tall image. Right-click and choose **Search this image with Ravue**. Check that no selector appears, the original page does not scroll, and one new tab proceeds from preparation to Lens results for the image resource.
-
-#### Test 2 — area selection
-
-2. Open the toolbar panel and choose **Select an area**. The selector starts empty. Click for a suggestion, right-click to clear, then drag manually. Move/resize and choose **Search**. Check that only the confirmed region appears in the JPEG used for the search. **Visible page** first selects the viewport and still requires Search confirmation.
-
-3. Use Tab to focus each control. Enter/Space should activate that button, not accidentally submit from Cancel, Reset, Close, or Visible page. Escape cancels before submission. Test expired operations, slow loading, closed result tabs, and unavailable Google controls. Distinguish the initial Google Images load wait (no local deadline, as disclosed above) from later input, submission, and Lens-page error/expiry handling.
-
-4. The source includes synthetic fixtures for image formats, frames, and CSP. Loopback images cannot be fetched publicly by Google; use a genuine public image for the URL route. The full matrix remains useful for zoom, HiDPI, lazy loading, object-fit, host-permission changes, and signed-update testing. Daily-use acceptance is not a claim that every matrix entry was individually completed.
-
-### DATA FLOW AND PRIVACY
-
-Direct image search first considers the image's HTTP(S) URL. Embedded credentials and recognizable local/intranet/private literal addresses are excluded, the fragment is removed, and query parameters are preserved. The result tab navigates to https://lens.google.com/uploadbyurl with that specific image URL. Ravue does not resize or re-encode the image on this eligible-URL path.
-
-Eligibility is syntactic: it does not verify DNS/public reachability, inspect all redirects, or remove secret query tokens. A URL may be temporary or unavailable to Google. A failed URL already submitted does not automatically trigger JPEG resubmission.
-
-If the URL is initially ineligible, Ravue attempts the complete decoded image pixels in the main document, or a rendered-rectangle capture when permitted, without scrolling. Those alternatives generate JPEG at quality 0.94 and at most 1200 pixels on the longest edge; they are not copies of the original file bytes. Inaccessible frames without an eligible URL fail rather than capturing the wrong frame.
-
-Area selection begins with a local PNG of the entire visible tab viewport, before cropping. A local analysis copy is limited to 960 pixels on its longest edge. Suggestions use packaged DOM/pixel heuristics, not OCR, remote AI, or downloaded models. Only the confirmed region is encoded into the final JPEG. Pixels may contain personal information; Ravue does not redact them.
-
-For JPEG delivery, the same new tab navigates to https://images.google.com/. A packaged content script first checks for a pending Ravue operation belonging to that tab, mounts the preparation cover, locates Google's image-search/file input, assigns a File, and dispatches input/change. Google's page performs the upload. Ravue's fetch of a data URL only decodes local bytes.
-
-The Lens script releases the preparation cover after readiness or failure/expiry handling. Readiness is not semantic validation of search quality or HTTP success. No service restrictions are bypassed.
-
-The final JPEG or image URL and operation association use browser.storage.session with a logical five-minute validity limit. JPEGs are removed on consumption; associations are cleaned on completion, closure, or expired-record cleanup. Exact physical deletion at expiry is not promised. The selector's working screenshot has a separate local in-memory lifetime. Ravue does not archive images in storage.local, storage.sync, or a developer server. Normal Google requests, cookies, browser history, and Google's retention are outside Ravue's control.
-
-### PERMISSIONS
-
-activeTab: temporary access following explicit user action.  
-menus: context commands and identification of the clicked element.  
-scripting: injection of packaged selector/helper code.  
-storage: temporary storage.session handoff.  
-https://images.google.com/*: JPEG delivery through Google's file input for a pending Ravue tab.  
-https://lens.google.com/*: preparation-cover handling for a pending result tab.
-
-Required transmitted-data category: websiteContent. Compared with 1.4.1, scripting, storage, and images.google.com are additions; contextMenus becomes menus. There is no permanent all-sites host permission.
-
-### VALIDATION EVIDENCE
-
-The maintainer's everyday-use acceptance is a report provided for this release. Exact Firefox/OS versions, duration, and per-scenario manual records were not supplied, so none are invented here.
-
-The local automated suite contains 179 tests: 166 unit/regression tests and 13 native pixel-processing tests using Skia/libvips. The recorded validation of this implementation passed all 179 without failures, skipped, or cancelled tests. The suite includes 12 loading-event regression scenarios. Tests execute the real packaged functions with explicit browser/DOM doubles; native codecs are not Gecko. The suite is rerun as part of the documentation-only release check. All 31 XPI files must match the corresponding source ZIP files byte-for-byte. All 64 non-Markdown source files and all 29 non-Markdown XPI members must remain identical to the accepted test package; no test source was changed to permit this repack.
-
-The recorded automated-validation environment did not have Firefox or web-ext/addons-linter installed. No official-validator pass, exhaustive Firefox test matrix, or signed 1.4.1-to-2.1.6 upgrade is claimed. The AMO validation result is to be checked during submission. No approval or guaranteed external-service availability is asserted.
-
-### SOURCE AND REPRODUCTION
-
-The runtime has no compilation, transpilation, bundling, minification, remote executable code, or obfuscation. Packaging copies readable JS, CSS, HTML, JSON, SVG, documentation, and image assets into an XPI. Native image libraries are test-only and are not included in the XPI. The source-transformation answer is No for this runtime; the exact matching source ZIP is available if requested.
-
-The matching source ZIP contains 69 files, including README.md, PRIVACY.md, CHANGELOG.md, TEST_MATRIX.md, this publication guide, tests, fixtures, and tools/package.cjs. The five Markdown documents were aligned to the accepted implementation; previous statements about a universal preparation deadline are corrected. The accepted original archives remain preserved separately. The new archive hashes differ because of documentation only.
-
-To reproduce the XPI on Node.js, extract the source ZIP and run:
+Extract the matching source ZIP and run from its root:
 
 ```bash
-node tools/package.cjs ../dist-reproducao
+node tools/package.cjs ../dist
+```
+
+The command performs deterministic packaging only and must reproduce the unsigned XPI bytes recorded in this document.
